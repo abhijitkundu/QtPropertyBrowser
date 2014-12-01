@@ -45,24 +45,24 @@ ELSE()
   QT4_ADD_RESOURCES(KIT_QRC_SRCS ${KIT_resources})
 ENDIF()
 
-SET(libname ${PROJECT_NAME})
-ADD_LIBRARY(${libname} STATIC
+ADD_LIBRARY(${PROJECT_NAME} STATIC
   ${KIT_SRCS}
   ${KIT_UI_CPP}
   ${KIT_MOC_CPP}
   ${KIT_QRC_SRCS}
   )
 
-target_include_directories(${libname} PRIVATE ${QT_INCLUDE_DIRS})
-target_compile_definitions(${libname} PRIVATE ${QT_COMPILE_DEFS})
-set_target_properties(${libname} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+target_include_directories(${PROJECT_NAME} PRIVATE ${QT_INCLUDE_DIRS})
+target_compile_definitions(${PROJECT_NAME} PRIVATE ${QT_COMPILE_DEFS})
+set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-  
-SET(${PROJECT_NAME}_LINK_LIBRARIES ${QT_LIBRARIES})
+SET(${PROJECT_NAME}_LINK_LIBRARIES ${QT_TARGETS})
 TARGET_LINK_LIBRARIES(
-  ${libname}
+  ${PROJECT_NAME}
   ${${PROJECT_NAME}_LINK_LIBRARIES}
   )
+
+add_dependencies(${PROJECT_NAME} ${QT_TARGETS})
 
 # List of header that should go though moc
 SET(KIT_HEADERS_MOC_SRCS
@@ -110,7 +110,7 @@ FOREACH(file ${KIT_CPP_MOC_SRCS})
   LIST(APPEND KIT_MOC_CPP ${output_file})
 ENDFOREACH()
 
-add_custom_target(${libname}GenerateMoc
+add_custom_target(${PROJECT_NAME}GenerateMoc
   DEPENDS ${KIT_MOC_CPP}
   )
-add_dependencies(${libname} ${libname}GenerateMoc)
+add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}GenerateMoc)
