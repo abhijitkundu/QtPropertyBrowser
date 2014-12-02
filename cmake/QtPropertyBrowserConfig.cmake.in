@@ -1,0 +1,13 @@
+# Config file for the QtPropertyBrowser package
+# It defines the following variables
+#  QtPropertyBrowser_FOUND   	    - standard CMake Package found indicator
+#  QtPropertyBrowser_INCLUDE_DIRS - include directories for QtPropertyBrowser
+#  QtPropertyBrowser_DEFINITIONS  - Definitions needed to build with QtPropertyBrowser
+#  QtPropertyBrowser_LIBRARIES    - Libraries needed to build with QtPropertyBrowser
+
+
+set (QtPropertyBrowser_FOUND true)
+
+@PACKAGE_INIT@
+set_and_check (QtPropertyBrowser_INCLUDE_DIRS "@PACKAGE_INSTALL_INCLUDE_DIR@")
+

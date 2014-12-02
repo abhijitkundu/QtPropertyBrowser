@@ -7,7 +7,11 @@ PROJECT(QtPropertyBrowser)
 SET (PROJECT_CMAKE_DIR ${PROJECT_SOURCE_DIR}/cmake)
 SET (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${PROJECT_CMAKE_DIR}")
 
+# Add custom Compile Settings and flags
+INCLUDE(CompileSettings)
 
+# Add custom Install Settings
+INCLUDE(InstallSettings)
 
 ##################### Look for required libraries ######################
 
@@ -17,25 +21,23 @@ IF (NOT QT_FOUND)
   MESSAGE(FATAL "We Need some QT")
 ENDIF()
 
-#-----------------------------------------------------------------------------
-# Subdirectories
-#
+######################### Add Primary Targets ##########################
 ADD_SUBDIRECTORY(src)
 
+########################## Add the Examples ############################
 OPTION (BUILD_EXAMPLES "Build Examples" ON)
 IF(BUILD_EXAMPLES)
   ADD_SUBDIRECTORY(examples)
 ENDIF()
 
-#-----------------------------------------------------------------------------
-# Generate QtPropertyBrowserConfig file
-#
-CONFIGURE_FILE(UseQtPropertyBrowser.cmake.in
-               ${QtPropertyBrowser_BINARY_DIR}/UseQtPropertyBrowser.cmake COPYONLY)
+######################### Installation Stuff ###########################
+INCLUDE(InstallProjectConfig)
 
-INCLUDE(GenerateQtPropertyBrowserConfig.cmake)
+###################### Add uninstall target ############################
+ADD_CUSTOM_TARGET(uninstall
+  COMMAND ${CMAKE_COMMAND} -P ${PROJECT_CMAKE_DIR}/cmake_uninstall.cmake)
 
-
+##################### Show Configuration Summary ######################
 MESSAGE(STATUS "===============================================================")
 MESSAGE(STATUS "================  Configuration Summary  ======================")
 MESSAGE(STATUS "Project Name:       ${PROJECT_NAME}")
