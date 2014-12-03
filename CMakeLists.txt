@@ -15,10 +15,7 @@ INCLUDE(InstallSettings)
 ##################### Look for required libraries ######################
 
 # Add QT dependencies
-INCLUDE(AddQt)
-IF (NOT QT_FOUND) 
-  MESSAGE(FATAL "We Need some QT")
-ENDIF()
+FIND_PACKAGE(Qt5Widgets REQUIRED)
 
 ######################### Add Primary Targets ##########################
 ADD_SUBDIRECTORY(src)
@@ -45,10 +42,10 @@ MESSAGE(STATUS "Build type Flags:   ${CMAKE_BUILD_TYPE_FLAGS}")
 MESSAGE(STATUS "C++ compile flags:  ${CMAKE_CXX_FLAGS}")
 MESSAGE(STATUS "Install Path:       ${CMAKE_INSTALL_PREFIX}")
 MESSAGE(STATUS "Build Examples:     ${BUILD_EXAMPLES}")
-IF(QT_FOUND )
-  MESSAGE(STATUS "QT Version:         ${QT_VERSION_STRING}")
-  MESSAGE(STATUS "QT_TARGETS:         ${QT_TARGETS}")
-  MESSAGE(STATUS "QT_ALL_TARGETS:     ${QT_ALL_TARGETS}")
-  MESSAGE(STATUS "QT_INCLUDE_DIRS:    ${QT_INCLUDE_DIRS}")
-  MESSAGE(STATUS "QT_COMPILE_DEFS:    ${QT_COMPILE_DEFS}")  
+IF(Qt5Widgets_FOUND)
+  MESSAGE(STATUS "QT Version:         ${Qt5Widgets_VERSION_STRING}")
+  MESSAGE(STATUS "QT INCLUDE DIRS:    ${Qt5Widgets_INCLUDE_DIRS}")
+  MESSAGE(STATUS "QT COMPILE DEFS:    ${Qt5Widgets_COMPILE_DEFINITIONS}")
+  MESSAGE(STATUS "QT DEFS:            ${Qt5Widgets_DEFINITIONS}")
+  MESSAGE(STATUS "QT EXE FLAGS:       ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
 ENDIF()

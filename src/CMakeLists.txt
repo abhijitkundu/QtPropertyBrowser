@@ -26,35 +26,19 @@ set(_RESOURCES
   qtpropertybrowser.qrc
   )
   
-if(QT5_FOUND)
-  QT5_WRAP_UI(_UI_SRCS ${_UI_FORMS})
-  QT5_ADD_RESOURCES(_QRC_SRCS ${_RESOURCES})
-else()
-  QT4_WRAP_UI(_UI_SRCS ${_UI_FORMS})
-  QT4_ADD_RESOURCES(_QRC_SRCS ${_RESOURCES})
-endif()
-
+QT5_WRAP_UI(_UI_SRCS ${_UI_FORMS})
+QT5_ADD_RESOURCES(_QRC_SRCS ${_RESOURCES})
 
 set(TARGET_NAME ${PROJECT_NAME})
 
-add_library(${TARGET_NAME} STATIC
+add_library(${TARGET_NAME}
   ${_SRCS}
   ${_UI_SRCS}
   ${_QRC_SRCS}
   ${_IMPL_HDRS}
   )
 
-target_include_directories(${TARGET_NAME} PRIVATE ${QT_INCLUDE_DIRS})
-target_compile_definitions(${TARGET_NAME} PRIVATE ${QT_COMPILE_DEFS})
-set_target_properties(${TARGET_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
-
-set(${TARGET_NAME}_LINK_LIBRARIES ${QT_TARGETS})
-target_link_libraries(
-  ${TARGET_NAME}
-  ${${TARGET_NAME}_LINK_LIBRARIES}
-  )
-
-add_dependencies(${TARGET_NAME} ${QT_TARGETS})
+target_link_libraries(${TARGET_NAME} Qt5::Widgets)
 
 ######################### Installation Stuff ###########################
 include(GenerateExportHeader)
