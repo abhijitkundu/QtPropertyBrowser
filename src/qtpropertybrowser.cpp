@@ -1875,6 +1875,7 @@ QtBrowserItem *QtAbstractPropertyBrowser::insertProperty(QtProperty *property,
     int pos = 0;
     int newPos = 0;
     QtProperty *properAfterProperty = 0;
+    Q_UNUSED(properAfterProperty);
     while (pos < pendingList.count()) {
         QtProperty *prop = pendingList.at(pos);
         if (prop == property)

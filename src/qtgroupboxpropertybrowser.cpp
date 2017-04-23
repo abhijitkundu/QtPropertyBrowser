@@ -326,6 +326,7 @@ void QtGroupBoxPropertyBrowserPrivate::propertyRemoved(QtBrowserItem *index)
             if (hasHeader(par))
                 oldRow += 2;
         }
+        Q_UNUSED(w);
 
         if (parentItem->widget) {
             parentItem->widget->hide();

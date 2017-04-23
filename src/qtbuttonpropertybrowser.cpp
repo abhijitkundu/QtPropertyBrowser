@@ -287,6 +287,7 @@ void QtButtonPropertyBrowserPrivate::propertyInserted(QtBrowserItem *index, QtBr
                 w = q_ptr;
                 l = m_mainLayout;
             }
+            Q_UNUSED(w);
             QFrame *container = new QFrame();
             container->setFrameShape(QFrame::Panel);
             container->setFrameShadow(QFrame::Raised);
