@@ -174,13 +174,16 @@ public:
 
     QString value(const QtProperty *property) const;
     QRegExp regExp(const QtProperty *property) const;
+    int maxLength(const QtProperty *property) const;
 
 public Q_SLOTS:
     void setValue(QtProperty *property, const QString &val);
     void setRegExp(QtProperty *property, const QRegExp &regExp);
+    void setMaxLength(QtProperty *property, int maxlen);
 Q_SIGNALS:
     void valueChanged(QtProperty *property, const QString &val);
     void regExpChanged(QtProperty *property, const QRegExp &regExp);
+    void maxLenChanged(QtProperty *property, int maxlen);
 protected:
     QString valueText(const QtProperty *property) const;
     virtual void initializeProperty(QtProperty *property);

@@ -1229,11 +1229,12 @@ public:
 
     struct Data
     {
-        Data() : regExp(QString(QLatin1Char('*')),  Qt::CaseSensitive, QRegExp::Wildcard)
+        Data() : regExp(QString(QLatin1Char('*')),  Qt::CaseSensitive, QRegExp::Wildcard), maxLen(-1)
         {
         }
         QString val;
         QRegExp regExp;
+        int maxLen;
     };
 
     typedef QMap<const QtProperty *, Data> PropertyValueMap;
@@ -1326,6 +1327,19 @@ QRegExp QtStringPropertyManager::regExp(const QtProperty *property) const
 }
 
 /*!
+    Returns the given \a property's currently set maximum length.
+
+    If the given \a property is not managed by this manager, this
+    function returns an empty expression.
+
+    \sa setMaxLength()
+*/
+int QtStringPropertyManager::maxLength(const QtProperty *property) const
+{
+    return getData<int>(d_ptr->m_values, &QtStringPropertyManagerPrivate::Data::maxLen, property, -1);
+}
+
+/*!
     \reimp
 */
 QString QtStringPropertyManager::valueText(const QtProperty *property) const
@@ -1355,6 +1369,9 @@ void QtStringPropertyManager::setValue(QtProperty *property, const QString &val)
     QtStringPropertyManagerPrivate::Data data = it.value();
 
     if (data.val == val)
+        return;
+
+    if ((data.maxLen > 0) && (val.length() > data.maxLen))
         return;
 
     if (data.regExp.isValid() && !data.regExp.exactMatch(val))
@@ -1389,6 +1406,27 @@ void QtStringPropertyManager::setRegExp(QtProperty *property, const QRegExp &reg
     it.value() = data;
 
     emit regExpChanged(property, data.regExp);
+}
+
+void QtStringPropertyManager::setMaxLength(QtProperty *property, int maxlen)
+{
+    const QtStringPropertyManagerPrivate::PropertyValueMap::iterator it = d_ptr->m_values.find(property);
+    if (it == d_ptr->m_values.end())
+        return;
+
+    QtStringPropertyManagerPrivate::Data data = it.value();
+
+    if (data.maxLen == maxlen)
+        return;
+
+    if (maxlen < -1)
+        return;
+
+    data.maxLen = maxlen;
+
+    it.value() = data;
+
+    emit maxLenChanged(property, data.maxLen);
 }
 
 /*!

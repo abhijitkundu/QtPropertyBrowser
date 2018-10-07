@@ -328,6 +328,7 @@ public:
     void slotValueChanged(QtProperty *property, bool val);
     void slotValueChanged(QtProperty *property, const QString &val);
     void slotRegExpChanged(QtProperty *property, const QRegExp &regExp);
+    void slotMaxLengthChanged(QtProperty *property, int maxlen);
     void slotValueChanged(QtProperty *property, const QDate &val);
     void slotRangeChanged(QtProperty *property, const QDate &min, const QDate &max);
     void slotValueChanged(QtProperty *property, const QTime &val);
@@ -382,6 +383,7 @@ public:
     const QString m_flagNamesAttribute;
     const QString m_maximumAttribute;
     const QString m_minimumAttribute;
+    const QString m_maxlengthAttribute;
     const QString m_regExpAttribute;
 };
 
@@ -394,6 +396,7 @@ QtVariantPropertyManagerPrivate::QtVariantPropertyManagerPrivate() :
     m_flagNamesAttribute(QLatin1String("flagNames")),
     m_maximumAttribute(QLatin1String("maximum")),
     m_minimumAttribute(QLatin1String("minimum")),
+    m_maxlengthAttribute(QLatin1String("maxlength")),
     m_regExpAttribute(QLatin1String("regExp"))
 {
 }
@@ -548,6 +551,12 @@ void QtVariantPropertyManagerPrivate::slotRegExpChanged(QtProperty *property, co
 {
     if (QtVariantProperty *varProp = m_internalToProperty.value(property, 0))
         emit q_ptr->attributeChanged(varProp, m_regExpAttribute, QVariant(regExp));
+}
+
+void QtVariantPropertyManagerPrivate::slotMaxLengthChanged(QtProperty *property, int maxlen)
+{
+    if (QtVariantProperty *varProp = m_internalToProperty.value(property, 0))
+        emit q_ptr->attributeChanged(varProp, m_maxlengthAttribute, QVariant(maxlen));
 }
 
 void QtVariantPropertyManagerPrivate::slotValueChanged(QtProperty *property, const QDate &val)
@@ -989,10 +998,14 @@ QtVariantPropertyManager::QtVariantPropertyManager(QObject *parent)
     d_ptr->m_typeToValueType[QVariant::String] = QVariant::String;
     d_ptr->m_typeToAttributeToAttributeType[QVariant::String][d_ptr->m_regExpAttribute] =
             QVariant::RegExp;
+    d_ptr->m_typeToAttributeToAttributeType[QVariant::String][d_ptr->m_maxlengthAttribute] =
+            QVariant::Int;
     connect(stringPropertyManager, SIGNAL(valueChanged(QtProperty *, const QString &)),
                 this, SLOT(slotValueChanged(QtProperty *, const QString &)));
     connect(stringPropertyManager, SIGNAL(regExpChanged(QtProperty *, const QRegExp &)),
                 this, SLOT(slotRegExpChanged(QtProperty *, const QRegExp &)));
+    connect(stringPropertyManager, SIGNAL(maxLenChanged(QtProperty*,int)),
+                this, SLOT(slotMaxLengthChanged(QtProperty *, int)));
     // DatePropertyManager
     QtDatePropertyManager *datePropertyManager = new QtDatePropertyManager(this);
     d_ptr->m_typeToPropertyManager[QVariant::Date] = datePropertyManager;
@@ -1526,6 +1539,8 @@ QVariant QtVariantPropertyManager::attributeValue(const QtProperty *property, co
     } else if (QtStringPropertyManager *stringManager = qobject_cast<QtStringPropertyManager *>(manager)) {
         if (attribute == d_ptr->m_regExpAttribute)
             return stringManager->regExp(internProp);
+        if (attribute == d_ptr->m_maxlengthAttribute)
+            return stringManager->maxLength(internProp);
         return QVariant();
     } else if (QtDatePropertyManager *dateManager = qobject_cast<QtDatePropertyManager *>(manager)) {
         if (attribute == d_ptr->m_maximumAttribute)
@@ -1769,6 +1784,8 @@ void QtVariantPropertyManager::setAttribute(QtProperty *property,
     } else if (QtStringPropertyManager *stringManager = qobject_cast<QtStringPropertyManager *>(manager)) {
         if (attribute == d_ptr->m_regExpAttribute)
             stringManager->setRegExp(internProp, value.value<QRegExp>());
+        if (attribute == d_ptr->m_maxlengthAttribute)
+            stringManager->setMaxLength(internProp, value.value<int>());
         return;
     } else if (QtDatePropertyManager *dateManager = qobject_cast<QtDatePropertyManager *>(manager)) {
         if (attribute == d_ptr->m_maximumAttribute)

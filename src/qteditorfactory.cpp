@@ -905,7 +905,9 @@ public:
 
     void slotPropertyChanged(QtProperty *property, const QString &value);
     void slotRegExpChanged(QtProperty *property, const QRegExp &regExp);
+    void slotMaxLengthChanged(QtProperty *property, int maxlen);
     void slotSetValue(const QString &value);
+    void slotSetMaxLength(int maxlen);
 };
 
 void QtLineEditFactoryPrivate::slotPropertyChanged(QtProperty *property,
@@ -948,6 +950,27 @@ void QtLineEditFactoryPrivate::slotRegExpChanged(QtProperty *property,
     }
 }
 
+void QtLineEditFactoryPrivate::slotMaxLengthChanged(QtProperty *property, int maxlen)
+{
+    if (!m_createdEditors.contains(property))
+        return;
+
+    QtStringPropertyManager *manager = q_ptr->propertyManager(property);
+    if (!manager)
+        return;
+
+    if(maxlen < 0)
+        maxlen = 32767;
+
+    QListIterator<QLineEdit *> itEditor(m_createdEditors[property]);
+    while (itEditor.hasNext()) {
+        QLineEdit *editor = itEditor.next();
+        editor->blockSignals(true);
+        editor->setMaxLength(maxlen);
+        editor->blockSignals(false);
+    }
+}
+
 void QtLineEditFactoryPrivate::slotSetValue(const QString &value)
 {
     QObject *object = q_ptr->sender();
@@ -959,6 +982,21 @@ void QtLineEditFactoryPrivate::slotSetValue(const QString &value)
             if (!manager)
                 return;
             manager->setValue(property, value);
+            return;
+        }
+}
+
+void QtLineEditFactoryPrivate::slotSetMaxLength(int maxlen)
+{
+    QObject *object = q_ptr->sender();
+    const QMap<QLineEdit *, QtProperty *>::ConstIterator ecend = m_editorToProperty.constEnd();
+    for (QMap<QLineEdit *, QtProperty *>::ConstIterator itEditor = m_editorToProperty.constBegin(); itEditor != ecend; ++itEditor)
+        if (itEditor.key() == object) {
+            QtProperty *property = itEditor.value();
+            QtStringPropertyManager *manager = q_ptr->propertyManager(property);
+            if (!manager)
+                return;
+            manager->setMaxLength(property, maxlen);
             return;
         }
 }
@@ -1003,6 +1041,8 @@ void QtLineEditFactory::connectPropertyManager(QtStringPropertyManager *manager)
                 this, SLOT(slotPropertyChanged(QtProperty *, const QString &)));
     connect(manager, SIGNAL(regExpChanged(QtProperty *, const QRegExp &)),
                 this, SLOT(slotRegExpChanged(QtProperty *, const QRegExp &)));
+    connect(manager, SIGNAL(maxLenChanged(QtProperty*,int)),
+                this, SLOT(slotMaxLengthChanged(QtProperty *, int)));
 }
 
 /*!
@@ -1020,6 +1060,10 @@ QWidget *QtLineEditFactory::createEditor(QtStringPropertyManager *manager,
         QValidator *validator = new QRegExpValidator(regExp, editor);
         editor->setValidator(validator);
     }
+    int maxlen = manager->maxLength(property);
+    if(maxlen < 0)
+        maxlen = 32767;
+    editor->setMaxLength(maxlen);
     editor->setText(manager->value(property));
 
     connect(editor, SIGNAL(textEdited(const QString &)),
@@ -1040,6 +1084,8 @@ void QtLineEditFactory::disconnectPropertyManager(QtStringPropertyManager *manag
                 this, SLOT(slotPropertyChanged(QtProperty *, const QString &)));
     disconnect(manager, SIGNAL(regExpChanged(QtProperty *, const QRegExp &)),
                 this, SLOT(slotRegExpChanged(QtProperty *, const QRegExp &)));
+    disconnect(manager, SIGNAL(maxLenChanged(QtProperty*,int)),
+                this, SLOT(slotMaxLengthChanged(QtProperty *, int)));
 }
 
 // QtDateEditFactory
