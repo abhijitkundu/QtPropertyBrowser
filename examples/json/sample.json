@@ -1,5 +1,5 @@
 {
-	"style" : "tree",
+	"style" : "groupbox",
 	"title" : "Sample setup",
 	"layout": [{
 			"control": "spinBox",
@@ -10,6 +10,18 @@
 			"value-min": -42,
 			"value-max": 42,
 			"single-step": 2
+		},
+		{
+			"control": "checkbox",
+			"name": "checkMe",
+			"title": "Check me",
+			"value-default": false
+		},
+		{
+			"control": "checkbox",
+			"name": "checkMeNot",
+			"title": "Don't check me, jerk",
+			"value-default": true
 		},
 		{
 			"control": "spinBox",
@@ -51,6 +63,21 @@
 					"title" : "Tek",
 					"value-default": "",
 					"max-length": 5
+				}
+			]
+		},
+		{
+			"control": "group",
+			"name": "someAnother",
+			"title": "Another...",
+			"children": [{
+					"control": "spinBox",
+					"type": "int",
+					"name": "kekVision",
+					"title" : "Kek",
+					"value-default": 5,
+					"value-min": -42,
+					"value-max": 42
 				}
 			]
 		}

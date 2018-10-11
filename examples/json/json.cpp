@@ -43,6 +43,7 @@
 #include <QDate>
 #include <QLocale>
 #include <QFile>
+#include <QStack>
 
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -55,6 +56,8 @@
 #include "qttreepropertybrowser.h"
 
 #include <QMessageBox>
+
+#include <QtDebug>
 
 const char *sample_config = "sample.json";
 const char *sample_settings = "setup.json";
@@ -69,8 +72,75 @@ PropJsonIO::~PropJsonIO() {}
 void PropJsonIO::currentItemChanged(QtBrowserItem *item)
 {}
 
+static QVariant retrieve_property(const QStack<QString> &setupTree, QString prop, const QVariant &defaultValue)
+{
+    /*
+        TODO: It's a crap! Put settings loader into separated place, but keep here the digging through already loaded tree
+    */
+    QFile f;
+    f.setFileName(sample_settings);
+    if(!f.open(QIODevice::ReadOnly))
+    {
+        QMessageBox::warning(nullptr, "oops", QString("Oops: %1").arg(f.errorString()));
+        return QVariant();
+    }
 
-static void loadPropertiesLoayout_fillElements(const QJsonArray &elements, QtVariantPropertyManager *manager, QtProperty *target, QWidget *parent = nullptr, QString *err = nullptr)
+    QByteArray layoutJson = f.readAll();
+    f.close();
+    QJsonParseError errCode;
+    QJsonDocument d = QJsonDocument::fromJson(layoutJson, &errCode);
+    if(errCode.error != QJsonParseError::NoError)
+    {
+        qDebug() << defaultValue << "ERROR" << errCode.errorString();
+        return defaultValue;
+    }
+
+    QJsonObject o = d.object();
+    QVariant out;
+    QString outPr;
+
+    for(const QString & t : setupTree)
+    {
+        outPr.append(t);
+        outPr.append(" << ");
+        if(!o.contains(t))
+        {
+            qDebug() << outPr << prop << defaultValue << "DEFAULT-TREE";
+            return defaultValue;
+        }
+        o = o[t].toObject();
+        out = o[t].toVariant();
+    }
+
+    if(!o.contains(prop))
+    {
+        qDebug() << outPr << prop << defaultValue << "DEFAULT-PROP";
+        return defaultValue;
+    }
+    out = o[prop].toVariant();
+
+    qDebug() << outPr << prop << out << "INPUT";
+
+    return out;
+}
+
+static QHash<QString, bool> loadPropertiesLoayout_requiredTypes =
+{
+    {"group", false},
+    {"checkbox", false},
+    {"spinbox", true},
+    {"lineedit", false},
+};
+
+static bool loadPropertiesLoayout_hasType(const QString &type)
+{
+    QString l = type.toLower();
+    if(!loadPropertiesLoayout_requiredTypes.contains(l))
+        return false;
+    return loadPropertiesLoayout_requiredTypes[l];
+}
+
+static void loadPropertiesLoayout_fillElements(QStack<QString> setupTree, const QJsonArray &elements, QtVariantPropertyManager *manager, QtProperty *target, QWidget *parent = nullptr, QString *err = nullptr)
 {
     for(const QJsonValue &o : elements)
     {
@@ -82,7 +152,7 @@ static void loadPropertiesLoayout_fillElements(const QJsonArray &elements, QtVar
 
         if(control.isEmpty())
             continue;//invalid
-        if(type.isEmpty() || (control != "group" && type == "invalid"))
+        if(loadPropertiesLoayout_hasType(control) && (type.isEmpty() || type == "invalid"))
             continue;
         if(name.isEmpty())
             continue;//invalid
@@ -96,7 +166,7 @@ static void loadPropertiesLoayout_fillElements(const QJsonArray &elements, QtVar
                 int valueMax = o["value-max"].toInt(100);
                 int singleStep = o["single-step"].toInt(1);
                 item = manager->addProperty(QVariant::Int, title);
-                item->setValue(valueDefault);
+                item->setValue(retrieve_property(setupTree, name, valueDefault));
                 item->setAttribute(QLatin1String("minimum"), valueMin);
                 item->setAttribute(QLatin1String("maximum"), valueMax);
                 item->setAttribute(QLatin1String("singleStep"), singleStep);
@@ -110,7 +180,7 @@ static void loadPropertiesLoayout_fillElements(const QJsonArray &elements, QtVar
                 double singleStep = o["single-step"].toDouble(1);
                 int decimals = o["decimals"].toInt(1);
                 item = manager->addProperty(QVariant::Double, title);
-                item->setValue(valueDefault);
+                item->setValue(retrieve_property(setupTree, name, valueDefault));
                 item->setAttribute(QLatin1String("minimum"), valueMin);
                 item->setAttribute(QLatin1String("maximum"), valueMax);
                 item->setAttribute(QLatin1String("singleStep"), singleStep);
@@ -118,13 +188,20 @@ static void loadPropertiesLoayout_fillElements(const QJsonArray &elements, QtVar
                 target->addSubProperty(item);
             }
         }
-        if(!control.compare("lineEdit", Qt::CaseInsensitive))
+        else if(!control.compare("checkBox", Qt::CaseInsensitive))
+        {
+            bool valueDefault = o["value-default"].toBool();
+            item = manager->addProperty(QVariant::Bool, title);
+            item->setValue(retrieve_property(setupTree, name, valueDefault));
+            target->addSubProperty(item);
+        }
+        else if(!control.compare("lineEdit", Qt::CaseInsensitive))
         {
             int maxLength = o["max-length"].toInt(-1);
             QString valueDefault = o["value-default"].toString();
             QString validator = o["validator"].toString();
             item = manager->addProperty(QVariant::String, title);
-            item->setValue(valueDefault);
+            item->setValue(retrieve_property(setupTree, name, valueDefault));
             item->setAttribute(QLatin1String("maxlength"), maxLength);
             if(!validator.isEmpty())
                 item->setAttribute(QLatin1String("regExp"), QRegExp(validator));
@@ -137,8 +214,10 @@ static void loadPropertiesLoayout_fillElements(const QJsonArray &elements, QtVar
             if(!children.isEmpty())
             {
                 QtProperty *subGroup = manager->addProperty(QtVariantPropertyManager::groupTypeId(), title);
+                setupTree.push(name);
+                loadPropertiesLoayout_fillElements(setupTree, children, manager, subGroup, parent, err);
+                setupTree.pop();
                 target->addSubProperty(subGroup);
-                loadPropertiesLoayout_fillElements(children, manager, subGroup, parent, err);
             }
         }
     }
@@ -149,6 +228,7 @@ static QtAbstractPropertyBrowser *loadPropertiesLoayout(const QByteArray &json, 
     QtAbstractPropertyBrowser *gui = nullptr;
     QString style;
     QString title;
+    QStack<QString> setupTree;
 
     QJsonParseError errCode;
     QJsonDocument layout = QJsonDocument::fromJson(json, &errCode);
@@ -173,7 +253,6 @@ static QtAbstractPropertyBrowser *loadPropertiesLoayout(const QByteArray &json, 
     {
         QtTreePropertyBrowser *gui_t = new QtTreePropertyBrowser(parent);
         gui_t->setPropertiesWithoutValueMarked(true);
-        gui_t->setRootIsDecorated(false);
         gui = gui_t;
     }
 
@@ -182,7 +261,7 @@ static QtAbstractPropertyBrowser *loadPropertiesLoayout(const QByteArray &json, 
     QtProperty *topItem = variantManager->addProperty(QtVariantPropertyManager::groupTypeId(), title);
 
     QJsonArray layoutEntries = layoutData["layout"].toArray();
-    loadPropertiesLoayout_fillElements(layoutEntries, variantManager, topItem, parent, err);
+    loadPropertiesLoayout_fillElements(setupTree, layoutEntries, variantManager, topItem, parent, err);
 
     QtVariantEditorFactory *variantFactory = new QtVariantEditorFactory(gui);
 
