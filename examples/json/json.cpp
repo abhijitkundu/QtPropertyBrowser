@@ -207,8 +207,19 @@ static void loadPropertiesLoayout_fillElements(QStack<QString> setupTree, const 
                 item->setAttribute(QLatin1String("regExp"), QRegExp(validator));
             target->addSubProperty(item);
         }
-        else
-        if(!control.compare("group", Qt::CaseInsensitive))
+        else if(!control.compare("comboBox", Qt::CaseInsensitive))
+        {
+            item = manager->addProperty(QtVariantPropertyManager::enumTypeId(), title);
+            QStringList enumList;
+            QVariantList children = o["elements"].toArray().toVariantList();
+            for(QVariant &j : children)
+                enumList.push_back(j.toString());
+            int valueDefault = o["value-default"].toInt();
+            item->setAttribute(QLatin1String("enumNames"), enumList);
+            item->setValue(retrieve_property(setupTree, name, valueDefault));
+            target->addSubProperty(item);
+        }
+        else if(!control.compare("group", Qt::CaseInsensitive))
         {
             QJsonArray children = o["children"].toArray();
             if(!children.isEmpty())
