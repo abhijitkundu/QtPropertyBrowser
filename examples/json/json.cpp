@@ -219,6 +219,60 @@ static void loadPropertiesLoayout_fillElements(QStack<QString> setupTree, const 
             item->setValue(retrieve_property(setupTree, name, valueDefault));
             target->addSubProperty(item);
         }
+        else if(!control.compare("flagBox", Qt::CaseInsensitive))
+        {
+            item = manager->addProperty(QtVariantPropertyManager::flagTypeId(), title);
+            QStringList enumList;
+            QVariantList children = o["elements"].toArray().toVariantList();
+            for(QVariant &j : children)
+                enumList.push_back(j.toString());
+            int valueDefault = o["value-default"].toInt();
+            item->setAttribute(QLatin1String("flagNames"), enumList);
+            item->setValue(retrieve_property(setupTree, name, valueDefault));
+            target->addSubProperty(item);
+        }
+        else if(!control.compare("sizeBox", Qt::CaseInsensitive))
+        {
+            item = manager->addProperty(QVariant::Size, title);
+            QJsonArray defArr = o["value-default"].toArray();
+            QJsonArray defMin = o["value-min"].toArray();
+            QJsonArray defMax = o["value-max"].toArray();
+            QSize valueDefault = QSize(defArr[0].toInt(), defArr[1].toInt());
+            QSize valueMin = QSize(defMin[0].toInt(), defMin[1].toInt());
+            QSize valueMax = QSize(defMax[0].toInt(), defMax[1].toInt());
+            item->setValue(retrieve_property(setupTree, name, valueDefault));
+            item->setAttribute(QLatin1String("minimum"), valueMin);
+            item->setAttribute(QLatin1String("maximum"), valueMax);
+            target->addSubProperty(item);
+        }
+        else if(!control.compare("pointbox", Qt::CaseInsensitive))
+        {
+            QJsonArray defArr = o["value-default"].toArray();
+            QPoint valueDefault = QPoint(defArr[0].toInt(), defArr[1].toInt());
+            item = manager->addProperty(QVariant::Point, title);
+            item->setValue(retrieve_property(setupTree, name, valueDefault));
+            //TODO: Feed them with QPoint
+            //item->setAttribute(QLatin1String("minimum"), valueMin);
+            //item->setAttribute(QLatin1String("maximum"), valueMax);
+            target->addSubProperty(item);
+        }
+        else if(!control.compare("rectbox", Qt::CaseInsensitive))
+        {
+            QJsonArray defArr = o["value-default"].toArray();
+            QRect valueDefault = QRect(defArr[0].toInt(), defArr[1].toInt(),
+                                       defArr[2].toInt(), defArr[3].toInt());
+            item = manager->addProperty(QVariant::Rect, title);
+            item->setValue(retrieve_property(setupTree, name, valueDefault));
+            //TODO: Feed them with QRect
+            //item->setAttribute(QLatin1String("minimum"), valueMin);
+            //item->setAttribute(QLatin1String("maximum"), valueMax);
+            target->addSubProperty(item);
+        }
+        /* TODO:
+         * - QSizeF
+         * - QRectF
+         * - QPointF
+         */
         else if(!control.compare("group", Qt::CaseInsensitive))
         {
             QJsonArray children = o["children"].toArray();
