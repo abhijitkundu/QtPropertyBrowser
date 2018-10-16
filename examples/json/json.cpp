@@ -72,34 +72,54 @@ PropJsonIO::~PropJsonIO() {}
 void PropJsonIO::currentItemChanged(QtBrowserItem *item)
 {}
 
-static QVariant retrieve_property(const QStack<QString> &setupTree, QString prop, const QVariant &defaultValue)
+struct SetupStack
 {
-    /*
-        TODO: It's a crap! Put settings loader into separated place, but keep here the digging through already loaded tree
-    */
-    QFile f;
-    f.setFileName(sample_settings);
-    if(!f.open(QIODevice::ReadOnly))
+    QStack<QString> m_setupTree;
+    QJsonDocument m_setupCache;
+
+    SetupStack()
+    {}
+
+    QString getPropertyId(const QString &name)
     {
-        QMessageBox::warning(nullptr, "oops", QString("Oops: %1").arg(f.errorString()));
-        return QVariant();
+        QString outPr;
+        for(const QString & t : m_setupTree)
+        {
+            outPr.append(t);
+            outPr.append('/');
+        }
+        outPr.append(name);
+        return outPr;
     }
 
-    QByteArray layoutJson = f.readAll();
-    f.close();
-    QJsonParseError errCode;
-    QJsonDocument d = QJsonDocument::fromJson(layoutJson, &errCode);
-    if(errCode.error != QJsonParseError::NoError)
+    void loadSetup(const QString &path)
     {
-        qDebug() << defaultValue << "ERROR" << errCode.errorString();
-        return defaultValue;
-    }
+        m_setupTree.clear();
+        QFile f;
+        f.setFileName(path);
+        if(!f.open(QIODevice::ReadOnly))
+        {
+            QMessageBox::warning(nullptr, "oops", QString("Oops: %1").arg(f.errorString()));
+            m_setupCache = QJsonDocument();
+        }
 
+        QByteArray layoutJson = f.readAll();
+        f.close();
+        QJsonParseError errCode;
+        m_setupCache = QJsonDocument::fromJson(layoutJson, &errCode);
+        if(errCode.error != QJsonParseError::NoError)
+            m_setupCache = QJsonDocument();
+    }
+};
+
+static QVariant retrieve_property(const SetupStack &setupTree, QString prop, const QVariant &defaultValue)
+{
+    const QJsonDocument d = setupTree.m_setupCache;
     QJsonObject o = d.object();
     QVariant out;
     QString outPr;
 
-    for(const QString & t : setupTree)
+    for(const QString & t : setupTree.m_setupTree)
     {
         outPr.append(t);
         outPr.append(" << ");
@@ -140,7 +160,7 @@ static bool loadPropertiesLoayout_hasType(const QString &type)
     return loadPropertiesLoayout_requiredTypes[l];
 }
 
-static void loadPropertiesLoayout_fillElements(QStack<QString> setupTree, const QJsonArray &elements, QtVariantPropertyManager *manager, QtProperty *target, QWidget *parent = nullptr, QString *err = nullptr)
+static void loadPropertiesLoayout_fillElements(SetupStack setupTree, const QJsonArray &elements, QtVariantPropertyManager *manager, QtProperty *target, QWidget *parent = nullptr, QString *err = nullptr)
 {
     for(const QJsonValue &o : elements)
     {
@@ -157,6 +177,8 @@ static void loadPropertiesLoayout_fillElements(QStack<QString> setupTree, const 
         if(name.isEmpty())
             continue;//invalid
 
+        qDebug() << "property" << setupTree.getPropertyId(name);
+
         if(!control.compare("spinBox", Qt::CaseInsensitive))
         {
             if(!type.compare("int", Qt::CaseInsensitive))
@@ -170,6 +192,7 @@ static void loadPropertiesLoayout_fillElements(QStack<QString> setupTree, const 
                 item->setAttribute(QLatin1String("minimum"), valueMin);
                 item->setAttribute(QLatin1String("maximum"), valueMax);
                 item->setAttribute(QLatin1String("singleStep"), singleStep);
+                item->setPropertyId(setupTree.getPropertyId(name));
                 target->addSubProperty(item);
             }
             else if(!type.compare("double", Qt::CaseInsensitive) || !type.compare("float", Qt::CaseInsensitive))
@@ -185,6 +208,7 @@ static void loadPropertiesLoayout_fillElements(QStack<QString> setupTree, const 
                 item->setAttribute(QLatin1String("maximum"), valueMax);
                 item->setAttribute(QLatin1String("singleStep"), singleStep);
                 item->setAttribute(QLatin1String("decimals"), decimals);
+                item->setPropertyId(setupTree.getPropertyId(name));
                 target->addSubProperty(item);
             }
         }
@@ -205,6 +229,7 @@ static void loadPropertiesLoayout_fillElements(QStack<QString> setupTree, const 
             item->setAttribute(QLatin1String("maxlength"), maxLength);
             if(!validator.isEmpty())
                 item->setAttribute(QLatin1String("regExp"), QRegExp(validator));
+            item->setPropertyId(setupTree.getPropertyId(name));
             target->addSubProperty(item);
         }
         else if(!control.compare("comboBox", Qt::CaseInsensitive))
@@ -217,6 +242,7 @@ static void loadPropertiesLoayout_fillElements(QStack<QString> setupTree, const 
             int valueDefault = o["value-default"].toInt();
             item->setAttribute(QLatin1String("enumNames"), enumList);
             item->setValue(retrieve_property(setupTree, name, valueDefault));
+            item->setPropertyId(setupTree.getPropertyId(name));
             target->addSubProperty(item);
         }
         else if(!control.compare("flagBox", Qt::CaseInsensitive))
@@ -229,6 +255,7 @@ static void loadPropertiesLoayout_fillElements(QStack<QString> setupTree, const 
             int valueDefault = o["value-default"].toInt();
             item->setAttribute(QLatin1String("flagNames"), enumList);
             item->setValue(retrieve_property(setupTree, name, valueDefault));
+            item->setPropertyId(setupTree.getPropertyId(name));
             target->addSubProperty(item);
         }
         else if(!control.compare("sizeBox", Qt::CaseInsensitive))
@@ -243,6 +270,7 @@ static void loadPropertiesLoayout_fillElements(QStack<QString> setupTree, const 
             item->setValue(retrieve_property(setupTree, name, valueDefault));
             item->setAttribute(QLatin1String("minimum"), valueMin);
             item->setAttribute(QLatin1String("maximum"), valueMax);
+            item->setPropertyId(setupTree.getPropertyId(name));
             target->addSubProperty(item);
         }
         else if(!control.compare("pointbox", Qt::CaseInsensitive))
@@ -254,6 +282,7 @@ static void loadPropertiesLoayout_fillElements(QStack<QString> setupTree, const 
             //TODO: Feed them with QPoint
             //item->setAttribute(QLatin1String("minimum"), valueMin);
             //item->setAttribute(QLatin1String("maximum"), valueMax);
+            item->setPropertyId(setupTree.getPropertyId(name));
             target->addSubProperty(item);
         }
         else if(!control.compare("rectbox", Qt::CaseInsensitive))
@@ -266,6 +295,7 @@ static void loadPropertiesLoayout_fillElements(QStack<QString> setupTree, const 
             //TODO: Feed them with QRect
             //item->setAttribute(QLatin1String("minimum"), valueMin);
             //item->setAttribute(QLatin1String("maximum"), valueMax);
+            item->setPropertyId(setupTree.getPropertyId(name));
             target->addSubProperty(item);
         }
         /* TODO:
@@ -279,21 +309,20 @@ static void loadPropertiesLoayout_fillElements(QStack<QString> setupTree, const 
             if(!children.isEmpty())
             {
                 QtProperty *subGroup = manager->addProperty(QtVariantPropertyManager::groupTypeId(), title);
-                setupTree.push(name);
+                setupTree.m_setupTree.push(name);
                 loadPropertiesLoayout_fillElements(setupTree, children, manager, subGroup, parent, err);
-                setupTree.pop();
+                setupTree.m_setupTree.pop();
                 target->addSubProperty(subGroup);
             }
         }
     }
 }
 
-static QtAbstractPropertyBrowser *loadPropertiesLoayout(const QByteArray &json, QWidget *parent = nullptr, QString *err = nullptr)
+static QtAbstractPropertyBrowser *loadPropertiesLoayout(const SetupStack &stack, const QByteArray &json, QWidget *parent = nullptr, QString *err = nullptr)
 {
     QtAbstractPropertyBrowser *gui = nullptr;
     QString style;
     QString title;
-    QStack<QString> setupTree;
 
     QJsonParseError errCode;
     QJsonDocument layout = QJsonDocument::fromJson(json, &errCode);
@@ -326,7 +355,14 @@ static QtAbstractPropertyBrowser *loadPropertiesLoayout(const QByteArray &json, 
     QtProperty *topItem = variantManager->addProperty(QtVariantPropertyManager::groupTypeId(), title);
 
     QJsonArray layoutEntries = layoutData["layout"].toArray();
-    loadPropertiesLoayout_fillElements(setupTree, layoutEntries, variantManager, topItem, parent, err);
+    loadPropertiesLoayout_fillElements(stack, layoutEntries, variantManager, topItem, parent, err);
+
+    variantManager->connect(variantManager, &QtVariantPropertyManager::valueChanged,
+        [](QtProperty *p,QVariant v)
+        {
+            qDebug() << "changed:" << p->propertyId() << v;
+        }
+    );
 
     QtVariantEditorFactory *variantFactory = new QtVariantEditorFactory(gui);
 
@@ -349,6 +385,9 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    SetupStack stack;
+    stack.loadSetup(sample_settings);
+
     QByteArray layoutJson = f.readAll();
     f.close();
 
@@ -356,7 +395,7 @@ int main(int argc, char **argv)
 
     QString error;
     //QtTreePropertyBrowser *variantEditor = new QtTreePropertyBrowser();
-    QtAbstractPropertyBrowser *variantEditor = loadPropertiesLoayout(layoutJson, nullptr, &error);
+    QtAbstractPropertyBrowser *variantEditor = loadPropertiesLoayout(stack, layoutJson, nullptr, &error);
     if(!variantEditor)
     {
         QMessageBox::warning(nullptr, "oops", QString("Oops: %1").arg(error));
