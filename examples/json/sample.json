@@ -42,21 +42,21 @@
 			"control": "sizebox",
 			"name": "sizeOfMyAss",
 			"title": "Size of?",
-			"value-min": [2, 2],
-			"value-max": [42, 42],
-			"value-default": [41, 34]
+			"value-min": {"w": 2, "h" : 2},
+			"value-max": {"w": 42,  "h": 42},
+			"value-default": {"w": 41, "h" : 34}
 		},
 		{
 			"control": "pointBox",
 			"name": "whereIsMySombrero",
 			"title": "Where?",
-			"value-default":[12, 12]
+			"value-default" : {"x":12, "y":12}
 		},
 		{
 			"control": "rectBox",
 			"name": "iCanSeeYou",
 			"title": "Rects, Rects.... rects!!!",
-			"value-default": [-12, 34, 12, 12]
+			"value-default": {"x":-12, "y":34, "w":12, "h":12}
 		},
 		{
 			"control": "spinBox",

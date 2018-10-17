@@ -1,15 +1,29 @@
 {
-	"testNumber": 41,
-	"checkMe" : true,
-	"checkMeNot" : false,
-	"floatTest" : 3.444,
-	"choice" : 4,
-	"alienShit": {
-		"child1": 42,
-		"child2": "a sh3t",
-		"child3" : "hekof"
-	},
-	"someAnother" : {
-	    "kekVision" : 32
-	}
+    "alienShit": {
+        "child2": "a sh9t",
+        "child3": "heck"
+    },
+    "checkMe": true,
+    "checkMeNot": false,
+    "choice": 4,
+    "choice2": 0,
+    "floatTest": 4.100000000000003,
+    "iCanSeeYou": {
+        "h": 25,
+        "w": 25,
+        "x": 25,
+        "y": -25
+    },
+    "sizeOfMyAss": {
+        "h": 25,
+        "w": 25
+    },
+    "someAnother": {
+        "kekVision": 1
+    },
+    "testNumber": 0,
+    "whereIsMySombrero": {
+        "x": 25,
+        "y": -25
+    }
 }

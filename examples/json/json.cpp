@@ -72,6 +72,35 @@ PropJsonIO::~PropJsonIO() {}
 void PropJsonIO::currentItemChanged(QtBrowserItem *item)
 {}
 
+static QJsonObject rectToArray(QVariant r)
+{
+    QRect rekt = r.toRect();
+    QJsonObject a;
+    a["x"] = QJsonValue::fromVariant(rekt.x());
+    a["y"] = QJsonValue::fromVariant(rekt.y());
+    a["w"] = QJsonValue::fromVariant(rekt.width());
+    a["h"] = QJsonValue::fromVariant(rekt.height());
+    return a;
+}
+
+static QJsonObject sizeToArray(QVariant r)
+{
+    QSize rekt = r.toSize();
+    QJsonObject a;
+    a["w"] = QJsonValue::fromVariant(rekt.width());
+    a["h"] = QJsonValue::fromVariant(rekt.height());
+    return a;
+}
+
+static QJsonObject pointToArray(QVariant r)
+{
+    QPoint rekt = r.toPoint();
+    QJsonObject a;
+    a["x"] = QJsonValue::fromVariant(rekt.x());
+    a["y"] = QJsonValue::fromVariant(rekt.y());
+    return a;
+}
+
 struct SetupStack
 {
     QStack<QString> m_setupTree;
@@ -101,6 +130,7 @@ struct SetupStack
         {
             QMessageBox::warning(nullptr, "oops", QString("Oops: %1").arg(f.errorString()));
             m_setupCache = QJsonDocument();
+            return;
         }
 
         QByteArray layoutJson = f.readAll();
@@ -109,6 +139,62 @@ struct SetupStack
         m_setupCache = QJsonDocument::fromJson(layoutJson, &errCode);
         if(errCode.error != QJsonParseError::NoError)
             m_setupCache = QJsonDocument();
+    }
+
+    void saveSetup(const QString &path)
+    {
+        QFile f;
+        f.setFileName(path);
+        if(!f.open(QIODevice::WriteOnly))
+        {
+            QMessageBox::warning(nullptr, "oops", QString("Oops: %1").arg(f.errorString()));
+            return;
+        }
+        f.write(m_setupCache.toJson());
+        f.close();
+    }
+
+    void setValue(const QString &propertyId, QVariant value)
+    {
+        QStringList stack = propertyId.split("/");
+        QJsonObject o = m_setupCache.object();
+        QStack<QJsonObject> stack_o;
+        QString top;
+        for(int i = 0; i < stack.size(); i++)
+        {
+            QString &t = stack[i];
+            top = t;
+            if(i == stack.size() - 1)
+                break;
+            stack_o.push(o);
+            o = o[t].toObject();
+        }
+
+        switch(value.type())
+        {
+        case QVariant::Rect:
+            o[top] = rectToArray(value);
+            break;
+        case QVariant::Point:
+            o[top] = pointToArray(value);
+            break;
+        case QVariant::Size:
+            o[top] = sizeToArray(value);
+            break;
+        default:
+            o[top] = QJsonValue::fromVariant(value);
+            break;
+        }
+
+        for(int i = stack.size() - 2; i >= 0; i--)
+        {
+            QString &s = stack[i];
+            QJsonObject oo = stack_o.pop();
+            oo[s] = o;
+            o = oo;
+        }
+
+        m_setupCache.setObject(o);
     }
 };
 
@@ -137,7 +223,30 @@ static QVariant retrieve_property(const SetupStack &setupTree, QString prop, con
         qDebug() << outPr << prop << defaultValue << "DEFAULT-PROP";
         return defaultValue;
     }
-    out = o[prop].toVariant();
+    switch(defaultValue.type())
+    {
+    case QVariant::Size:
+        {
+            QJsonObject sz = o[prop].toObject();
+            out = QSize(sz["w"].toInt(), sz["h"].toInt());
+        }
+        break;
+    case QVariant::Point:
+        {
+            QJsonObject sz = o[prop].toObject();
+            out = QPoint(sz["x"].toInt(), sz["y"].toInt());
+        }
+        break;
+    case QVariant::Rect:
+        {
+            QJsonObject sz = o[prop].toObject();
+            out = QRect(sz["x"].toInt(), sz["y"].toInt(), sz["w"].toInt(), sz["h"].toInt());
+        }
+        break;
+    default:
+        out = o[prop].toVariant();
+        break;
+    }
 
     qDebug() << outPr << prop << out << "INPUT";
 
@@ -217,6 +326,7 @@ static void loadPropertiesLoayout_fillElements(SetupStack setupTree, const QJson
             bool valueDefault = o["value-default"].toBool();
             item = manager->addProperty(QVariant::Bool, title);
             item->setValue(retrieve_property(setupTree, name, valueDefault));
+            item->setPropertyId(setupTree.getPropertyId(name));
             target->addSubProperty(item);
         }
         else if(!control.compare("lineEdit", Qt::CaseInsensitive))
@@ -261,12 +371,12 @@ static void loadPropertiesLoayout_fillElements(SetupStack setupTree, const QJson
         else if(!control.compare("sizeBox", Qt::CaseInsensitive))
         {
             item = manager->addProperty(QVariant::Size, title);
-            QJsonArray defArr = o["value-default"].toArray();
-            QJsonArray defMin = o["value-min"].toArray();
-            QJsonArray defMax = o["value-max"].toArray();
-            QSize valueDefault = QSize(defArr[0].toInt(), defArr[1].toInt());
-            QSize valueMin = QSize(defMin[0].toInt(), defMin[1].toInt());
-            QSize valueMax = QSize(defMax[0].toInt(), defMax[1].toInt());
+            QJsonObject defArr = o["value-default"].toObject();
+            QJsonObject defMin = o["value-min"].toObject();
+            QJsonObject defMax = o["value-max"].toObject();
+            QSize valueDefault = QSize(defArr["w"].toInt(), defArr["h"].toInt());
+            QSize valueMin = QSize(defMin["w"].toInt(), defMin["h"].toInt());
+            QSize valueMax = QSize(defMax["w"].toInt(), defMax["h"].toInt());
             item->setValue(retrieve_property(setupTree, name, valueDefault));
             item->setAttribute(QLatin1String("minimum"), valueMin);
             item->setAttribute(QLatin1String("maximum"), valueMax);
@@ -275,26 +385,34 @@ static void loadPropertiesLoayout_fillElements(SetupStack setupTree, const QJson
         }
         else if(!control.compare("pointbox", Qt::CaseInsensitive))
         {
-            QJsonArray defArr = o["value-default"].toArray();
-            QPoint valueDefault = QPoint(defArr[0].toInt(), defArr[1].toInt());
+            QJsonObject defArr = o["value-default"].toObject();
+            QJsonObject defMin = o["value-min"].toObject();
+            QJsonObject defMax = o["value-max"].toObject();
+            QPoint valueDefault = QPoint(defArr["x"].toInt(), defArr["y"].toInt());
+            QPoint valueMin = QPoint(defMin["x"].toInt(), defMin["y"].toInt());
+            QPoint valueMax = QPoint(defMax["x"].toInt(), defMax["y"].toInt());
             item = manager->addProperty(QVariant::Point, title);
             item->setValue(retrieve_property(setupTree, name, valueDefault));
-            //TODO: Feed them with QPoint
-            //item->setAttribute(QLatin1String("minimum"), valueMin);
-            //item->setAttribute(QLatin1String("maximum"), valueMax);
+            item->setAttribute(QLatin1String("minimum"), valueMin);
+            item->setAttribute(QLatin1String("maximum"), valueMax);
             item->setPropertyId(setupTree.getPropertyId(name));
             target->addSubProperty(item);
         }
         else if(!control.compare("rectbox", Qt::CaseInsensitive))
         {
-            QJsonArray defArr = o["value-default"].toArray();
-            QRect valueDefault = QRect(defArr[0].toInt(), defArr[1].toInt(),
-                                       defArr[2].toInt(), defArr[3].toInt());
+            QJsonObject defArr = o["value-default"].toObject();
+            QJsonObject defMin = o["value-min"].toObject();
+            QJsonObject defMax = o["value-max"].toObject();
+            QRect valueDefault = QRect(defArr["x"].toInt(), defArr["y"].toInt(),
+                                       defArr["w"].toInt(), defArr["h"].toInt());
+            QRect valueMin     = QRect(defMin["x"].toInt(), defMin["y"].toInt(),
+                                       defMin["w"].toInt(), defMin["h"].toInt());
+            QRect valueMax     = QRect(defMax["x"].toInt(), defMax["y"].toInt(),
+                                       defMax["w"].toInt(), defMax["h"].toInt());
             item = manager->addProperty(QVariant::Rect, title);
             item->setValue(retrieve_property(setupTree, name, valueDefault));
-            //TODO: Feed them with QRect
-            //item->setAttribute(QLatin1String("minimum"), valueMin);
-            //item->setAttribute(QLatin1String("maximum"), valueMax);
+            item->setAttribute(QLatin1String("minimum"), valueMin);
+            item->setAttribute(QLatin1String("maximum"), valueMax);
             item->setPropertyId(setupTree.getPropertyId(name));
             target->addSubProperty(item);
         }
@@ -318,7 +436,7 @@ static void loadPropertiesLoayout_fillElements(SetupStack setupTree, const QJson
     }
 }
 
-static QtAbstractPropertyBrowser *loadPropertiesLoayout(const SetupStack &stack, const QByteArray &json, QWidget *parent = nullptr, QString *err = nullptr)
+static QtAbstractPropertyBrowser *loadPropertiesLoayout(SetupStack &stack, const QByteArray &json, QWidget *parent = nullptr, QString *err = nullptr)
 {
     QtAbstractPropertyBrowser *gui = nullptr;
     QString style;
@@ -358,9 +476,12 @@ static QtAbstractPropertyBrowser *loadPropertiesLoayout(const SetupStack &stack,
     loadPropertiesLoayout_fillElements(stack, layoutEntries, variantManager, topItem, parent, err);
 
     variantManager->connect(variantManager, &QtVariantPropertyManager::valueChanged,
-        [](QtProperty *p,QVariant v)
+        [&stack](QtProperty *p,QVariant v)
         {
-            qDebug() << "changed:" << p->propertyId() << v;
+            QString pid = p->propertyId();
+            qDebug() << "changed:" << pid << v;
+            if(!pid.isEmpty())
+                stack.setValue(p->propertyId(), v);
         }
     );
 
@@ -408,6 +529,8 @@ int main(int argc, char **argv)
     variantEditor->show();
 
     int ret = app.exec();
+
+    stack.saveSetup(sample_settings);
 
     // delete variantManager;
     // delete variantFactory;
