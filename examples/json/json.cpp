@@ -63,46 +63,46 @@ const char *sample_config = "sample.json";
 const char *sample_settings = "setup.json";
 
 
-PropJsonIO::PropJsonIO(QObject *parent) :
-    QObject(parent)
-{}
+//PropJsonIO::PropJsonIO(QObject *parent) :
+//    QObject(parent)
+//{}
 
-PropJsonIO::~PropJsonIO() {}
+//PropJsonIO::~PropJsonIO() {}
 
-void PropJsonIO::currentItemChanged(QtBrowserItem *item)
-{}
-
-static QJsonObject rectToArray(QVariant r)
-{
-    QRect rekt = r.toRect();
-    QJsonObject a;
-    a["x"] = QJsonValue::fromVariant(rekt.x());
-    a["y"] = QJsonValue::fromVariant(rekt.y());
-    a["w"] = QJsonValue::fromVariant(rekt.width());
-    a["h"] = QJsonValue::fromVariant(rekt.height());
-    return a;
-}
-
-static QJsonObject sizeToArray(QVariant r)
-{
-    QSize rekt = r.toSize();
-    QJsonObject a;
-    a["w"] = QJsonValue::fromVariant(rekt.width());
-    a["h"] = QJsonValue::fromVariant(rekt.height());
-    return a;
-}
-
-static QJsonObject pointToArray(QVariant r)
-{
-    QPoint rekt = r.toPoint();
-    QJsonObject a;
-    a["x"] = QJsonValue::fromVariant(rekt.x());
-    a["y"] = QJsonValue::fromVariant(rekt.y());
-    return a;
-}
+//void PropJsonIO::currentItemChanged(QtBrowserItem *item)
+//{}
 
 struct SetupStack
 {
+    static QJsonObject rectToArray(QVariant r)
+    {
+        QRect rekt = r.toRect();
+        QJsonObject a;
+        a["x"] = QJsonValue::fromVariant(rekt.x());
+        a["y"] = QJsonValue::fromVariant(rekt.y());
+        a["w"] = QJsonValue::fromVariant(rekt.width());
+        a["h"] = QJsonValue::fromVariant(rekt.height());
+        return a;
+    }
+
+    static QJsonObject sizeToArray(QVariant r)
+    {
+        QSize rekt = r.toSize();
+        QJsonObject a;
+        a["w"] = QJsonValue::fromVariant(rekt.width());
+        a["h"] = QJsonValue::fromVariant(rekt.height());
+        return a;
+    }
+
+    static QJsonObject pointToArray(QVariant r)
+    {
+        QPoint rekt = r.toPoint();
+        QJsonObject a;
+        a["x"] = QJsonValue::fromVariant(rekt.x());
+        a["y"] = QJsonValue::fromVariant(rekt.y());
+        return a;
+    }
+
     QStack<QString> m_setupTree;
     QJsonDocument m_setupCache;
 
