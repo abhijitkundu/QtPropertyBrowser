@@ -8,8 +8,9 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 SET(example_name json)
 
 SET(KIT_SRCS
-  json.cpp
-  )
+    json_settings_widget.cpp
+    json.cpp
+)
 
 ADD_EXECUTABLE(${example_name} ${KIT_SRCS})
 TARGET_LINK_LIBRARIES(${example_name} ${PROJECT_NAME})

@@ -1,30 +1,30 @@
 {
     "alienShit": {
-        "child1": -4,
+        "child1": 17,
         "child2": "a sh9t",
-        "child3": "heck"
+        "child3": "meow!"
     },
     "checkMe": false,
     "checkMeNot": true,
-    "choice": 2,
-    "choice2": 22,
-    "floatTest": 4.100000000000003,
+    "choice": 3,
+    "choice2": 7,
+    "floatTest": 3.6999999999999993,
     "iCanSeeYou": {
-        "h": 25,
-        "w": 25,
-        "x": 25,
-        "y": -27
+        "h": 16,
+        "w": 11,
+        "x": 52,
+        "y": -53
     },
     "sizeOfMyAss": {
-        "h": 25,
-        "w": 25
+        "h": 21,
+        "w": 4
     },
     "someAnother": {
-        "kekVision": 1
+        "kekVision": 5
     },
-    "testNumber": 8,
+    "testNumber": 9,
     "whereIsMySombrero": {
-        "x": 25,
-        "y": -25
+        "x": 6,
+        "y": -35
     }
 }
