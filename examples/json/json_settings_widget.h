@@ -20,8 +20,11 @@ public:
     struct SetupStack
     {
         static QJsonObject rectToArray(QVariant r);
+        static QJsonObject rectfToArray(QVariant r);
         static QJsonObject sizeToArray(QVariant r);
+        static QJsonObject sizefToArray(QVariant r);
         static QJsonObject pointToArray(QVariant r);
+        static QJsonObject pointfToArray(QVariant r);
 
         QStack<QString> m_setupTree;
         QJsonDocument m_setupCache;

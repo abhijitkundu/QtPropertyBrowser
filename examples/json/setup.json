@@ -8,7 +8,21 @@
     "checkMeNot": true,
     "choice": 3,
     "choice2": 7,
+    "fanSeeYou": {
+        "h": 12.11,
+        "w": 12.054,
+        "x": -1.05224,
+        "y": 34
+    },
+    "floatOfWhere": {
+        "x": 12.02,
+        "y": -12.104
+    },
     "floatTest": 3.6999999999999993,
+    "floatingBrick": {
+        "h": 34.2,
+        "w": 40.22
+    },
     "iCanSeeYou": {
         "h": 16,
         "w": 11,

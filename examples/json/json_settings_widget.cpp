@@ -26,6 +26,17 @@ QJsonObject JsonSettingsWidget::SetupStack::rectToArray(QVariant r)
     return a;
 }
 
+QJsonObject JsonSettingsWidget::SetupStack::rectfToArray(QVariant r)
+{
+    QRectF rekt = r.toRectF();
+    QJsonObject a;
+    a["x"] = QJsonValue::fromVariant(rekt.x());
+    a["y"] = QJsonValue::fromVariant(rekt.y());
+    a["w"] = QJsonValue::fromVariant(rekt.width());
+    a["h"] = QJsonValue::fromVariant(rekt.height());
+    return a;
+}
+
 QJsonObject JsonSettingsWidget::SetupStack::sizeToArray(QVariant r)
 {
     QSize rekt = r.toSize();
@@ -35,9 +46,27 @@ QJsonObject JsonSettingsWidget::SetupStack::sizeToArray(QVariant r)
     return a;
 }
 
+QJsonObject JsonSettingsWidget::SetupStack::sizefToArray(QVariant r)
+{
+    QSizeF rekt = r.toSizeF();
+    QJsonObject a;
+    a["w"] = QJsonValue::fromVariant(rekt.width());
+    a["h"] = QJsonValue::fromVariant(rekt.height());
+    return a;
+}
+
 QJsonObject JsonSettingsWidget::SetupStack::pointToArray(QVariant r)
 {
     QPoint rekt = r.toPoint();
+    QJsonObject a;
+    a["x"] = QJsonValue::fromVariant(rekt.x());
+    a["y"] = QJsonValue::fromVariant(rekt.y());
+    return a;
+}
+
+QJsonObject JsonSettingsWidget::SetupStack::pointfToArray(QVariant r)
+{
+    QPointF rekt = r.toPointF();
     QJsonObject a;
     a["x"] = QJsonValue::fromVariant(rekt.x());
     a["y"] = QJsonValue::fromVariant(rekt.y());
@@ -102,11 +131,20 @@ void JsonSettingsWidget::SetupStack::setValue(const QString &propertyId, QVarian
     case QVariant::Rect:
         o[top] = rectToArray(value);
         break;
+    case QVariant::RectF:
+        o[top] = rectfToArray(value);
+        break;
     case QVariant::Point:
         o[top] = pointToArray(value);
         break;
+    case QVariant::PointF:
+        o[top] = pointfToArray(value);
+        break;
     case QVariant::Size:
         o[top] = sizeToArray(value);
+        break;
+    case QVariant::SizeF:
+        o[top] = sizefToArray(value);
         break;
     default:
         o[top] = QJsonValue::fromVariant(value);
@@ -271,20 +309,38 @@ QVariant JsonSettingsWidget::retrieve_property(const JsonSettingsWidget::SetupSt
     {
         QJsonObject sz = o[prop].toObject();
         out = QSize(sz["w"].toInt(), sz["h"].toInt());
-    }
         break;
+    }
+    case QVariant::SizeF:
+    {
+        QJsonObject sz = o[prop].toObject();
+        out = QSizeF(sz["w"].toDouble(), sz["h"].toDouble());
+        break;
+    }
     case QVariant::Point:
     {
         QJsonObject sz = o[prop].toObject();
         out = QPoint(sz["x"].toInt(), sz["y"].toInt());
-    }
         break;
+    }
+    case QVariant::PointF:
+    {
+        QJsonObject sz = o[prop].toObject();
+        out = QPointF(sz["x"].toDouble(), sz["y"].toDouble());
+        break;
+    }
     case QVariant::Rect:
     {
         QJsonObject sz = o[prop].toObject();
         out = QRect(sz["x"].toInt(), sz["y"].toInt(), sz["w"].toInt(), sz["h"].toInt());
-    }
         break;
+    }
+    case QVariant::RectF:
+    {
+        QJsonObject sz = o[prop].toObject();
+        out = QRectF(sz["x"].toDouble(), sz["y"].toDouble(), sz["w"].toDouble(), sz["h"].toDouble());
+        break;
+    }
     default:
         out = o[prop].toVariant();
         break;
@@ -417,16 +473,32 @@ void JsonSettingsWidget::loadLayoutEntries(JsonSettingsWidget::SetupStack setupT
         }
         else if(!control.compare("sizeBox", Qt::CaseInsensitive))
         {
-            item = manager->addProperty(QVariant::Size, title);
             QJsonObject defArr = o["value-default"].toObject();
             QJsonObject defMin = o["value-min"].toObject();
             QJsonObject defMax = o["value-max"].toObject();
-            QSize valueDefault = QSize(defArr["w"].toInt(), defArr["h"].toInt());
-            QSize valueMin = QSize(defMin["w"].toInt(), defMin["h"].toInt());
-            QSize valueMax = QSize(defMax["w"].toInt(), defMax["h"].toInt());
-            item->setValue(retrieve_property(setupTree, name, valueDefault));
-            item->setAttribute(QLatin1String("minimum"), valueMin);
-            item->setAttribute(QLatin1String("maximum"), valueMax);
+            if(!type.compare("double", Qt::CaseInsensitive))
+            {
+                item = manager->addProperty(QVariant::SizeF, title);
+                QSizeF valueDefault = QSizeF(defArr["w"].toDouble(), defArr["h"].toDouble());
+                QSizeF valueMin = QSizeF(defMin["w"].toDouble(), defMin["h"].toDouble());
+                QSizeF valueMax = QSizeF(defMax["w"].toDouble(), defMax["h"].toDouble());
+                item->setValue(retrieve_property(setupTree, name, valueDefault));
+                item->setAttribute(QLatin1String("minimum"), valueMin);
+                item->setAttribute(QLatin1String("maximum"), valueMax);
+                int decimals = o["decimals"].toInt(2);
+                item->setAttribute(QLatin1String("decimals"), decimals);
+            }
+            else
+            {
+                item = manager->addProperty(QVariant::Size, title);
+                QSize valueDefault = QSize(defArr["w"].toInt(), defArr["h"].toInt());
+                QSize valueMin = QSize(defMin["w"].toInt(), defMin["h"].toInt());
+                QSize valueMax = QSize(defMax["w"].toInt(), defMax["h"].toInt());
+                item->setValue(retrieve_property(setupTree, name, valueDefault));
+                item->setAttribute(QLatin1String("minimum"), valueMin);
+                item->setAttribute(QLatin1String("maximum"), valueMax);
+            }
+
             item->setPropertyId(setupTree.getPropertyId(name));
             target->addSubProperty(item);
         }
@@ -435,13 +507,30 @@ void JsonSettingsWidget::loadLayoutEntries(JsonSettingsWidget::SetupStack setupT
             QJsonObject defArr = o["value-default"].toObject();
             QJsonObject defMin = o["value-min"].toObject();
             QJsonObject defMax = o["value-max"].toObject();
-            QPoint valueDefault = QPoint(defArr["x"].toInt(), defArr["y"].toInt());
-            QPoint valueMin = QPoint(defMin["x"].toInt(), defMin["y"].toInt());
-            QPoint valueMax = QPoint(defMax["x"].toInt(), defMax["y"].toInt());
-            item = manager->addProperty(QVariant::Point, title);
-            item->setValue(retrieve_property(setupTree, name, valueDefault));
-            item->setAttribute(QLatin1String("minimum"), valueMin);
-            item->setAttribute(QLatin1String("maximum"), valueMax);
+
+            if(!type.compare("double", Qt::CaseInsensitive))
+            {
+                item = manager->addProperty(QVariant::PointF, title);
+                QPointF valueDefault = QPointF(defArr["x"].toDouble(), defArr["y"].toDouble());
+                QPointF valueMin = QPointF(defMin["x"].toDouble(), defMin["y"].toDouble());
+                QPointF valueMax = QPointF(defMax["x"].toDouble(), defMax["y"].toDouble());
+                item->setValue(retrieve_property(setupTree, name, valueDefault));
+                item->setAttribute(QLatin1String("minimum"), valueMin);
+                item->setAttribute(QLatin1String("maximum"), valueMax);
+                int decimals = o["decimals"].toInt(2);
+                item->setAttribute(QLatin1String("decimals"), decimals);
+            }
+            else
+            {
+                item = manager->addProperty(QVariant::Point, title);
+                QPoint valueDefault = QPoint(defArr["x"].toInt(), defArr["y"].toInt());
+                QPoint valueMin = QPoint(defMin["x"].toInt(), defMin["y"].toInt());
+                QPoint valueMax = QPoint(defMax["x"].toInt(), defMax["y"].toInt());
+                item->setValue(retrieve_property(setupTree, name, valueDefault));
+                item->setAttribute(QLatin1String("minimum"), valueMin);
+                item->setAttribute(QLatin1String("maximum"), valueMax);
+            }
+
             item->setPropertyId(setupTree.getPropertyId(name));
             target->addSubProperty(item);
         }
@@ -450,24 +539,39 @@ void JsonSettingsWidget::loadLayoutEntries(JsonSettingsWidget::SetupStack setupT
             QJsonObject defArr = o["value-default"].toObject();
             QJsonObject defMin = o["value-min"].toObject();
             QJsonObject defMax = o["value-max"].toObject();
-            QRect valueDefault = QRect(defArr["x"].toInt(), defArr["y"].toInt(),
-                    defArr["w"].toInt(), defArr["h"].toInt());
-            QRect valueMin     = QRect(defMin["x"].toInt(), defMin["y"].toInt(),
-                    defMin["w"].toInt(), defMin["h"].toInt());
-            QRect valueMax     = QRect(defMax["x"].toInt(), defMax["y"].toInt(),
-                    defMax["w"].toInt(), defMax["h"].toInt());
-            item = manager->addProperty(QVariant::Rect, title);
-            item->setValue(retrieve_property(setupTree, name, valueDefault));
-            item->setAttribute(QLatin1String("minimum"), valueMin);
-            item->setAttribute(QLatin1String("maximum"), valueMax);
+
+            if(!type.compare("double", Qt::CaseInsensitive))
+            {
+                item = manager->addProperty(QVariant::RectF, title);
+                QRectF valueDefault = QRectF(defArr["x"].toDouble(), defArr["y"].toDouble(),
+                        defArr["w"].toDouble(), defArr["h"].toDouble());
+                QRectF valueMin     = QRectF(defMin["x"].toDouble(), defMin["y"].toDouble(),
+                        defMin["w"].toDouble(), defMin["h"].toDouble());
+                QRectF valueMax     = QRectF(defMax["x"].toDouble(), defMax["y"].toDouble(),
+                        defMax["w"].toDouble(), defMax["h"].toDouble());
+                item->setValue(retrieve_property(setupTree, name, valueDefault));
+                item->setAttribute(QLatin1String("minimum"), valueMin);
+                item->setAttribute(QLatin1String("maximum"), valueMax);
+                int decimals = o["decimals"].toInt(2);
+                item->setAttribute(QLatin1String("decimals"), decimals);
+            }
+            else
+            {
+                item = manager->addProperty(QVariant::Rect, title);
+                QRect valueDefault = QRect(defArr["x"].toInt(), defArr["y"].toInt(),
+                        defArr["w"].toInt(), defArr["h"].toInt());
+                QRect valueMin     = QRect(defMin["x"].toInt(), defMin["y"].toInt(),
+                        defMin["w"].toInt(), defMin["h"].toInt());
+                QRect valueMax     = QRect(defMax["x"].toInt(), defMax["y"].toInt(),
+                        defMax["w"].toInt(), defMax["h"].toInt());
+                item->setValue(retrieve_property(setupTree, name, valueDefault));
+                item->setAttribute(QLatin1String("minimum"), valueMin);
+                item->setAttribute(QLatin1String("maximum"), valueMax);
+            }
+
             item->setPropertyId(setupTree.getPropertyId(name));
             target->addSubProperty(item);
         }
-        /* TODO:
-             * - QSizeF
-             * - QRectF
-             * - QPointF
-             */
         else if(!control.compare("group", Qt::CaseInsensitive))
         {
             QJsonArray children = o["children"].toArray();
