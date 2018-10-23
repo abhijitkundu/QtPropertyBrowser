@@ -633,7 +633,10 @@ QtAbstractPropertyBrowser *JsonSettingsWidget::loadLayoutDetail(JsonSettingsWidg
         QString pid = p->propertyId();
         qDebug() << "changed:" << pid << v;
         if(!pid.isEmpty())
+        {
             m_setupStack.setValue(p->propertyId(), v);
+            emit settingsChanged();
+        }
     }
     );
 

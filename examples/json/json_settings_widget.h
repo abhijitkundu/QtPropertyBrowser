@@ -57,6 +57,9 @@ public:
 
     QString errorString();
 
+signals:
+    void settingsChanged();
+
 private:
     QString     m_errorString;
     SetupStack  m_setupStack;

@@ -60,6 +60,11 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    extraSettings.connect(&extraSettings, &JsonSettingsWidget::settingsChanged,
+                            []()
+    {
+        qDebug() << "Setup Changed!";
+    });
 
     QWidget *w = extraSettings.getWidget();
     w->show();
