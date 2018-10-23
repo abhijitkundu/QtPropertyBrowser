@@ -12,11 +12,6 @@ class JsonSettingsWidget : public QObject
 {
     Q_OBJECT
 
-public:
-    explicit JsonSettingsWidget(QWidget *parent = nullptr);
-    explicit JsonSettingsWidget(const QByteArray &layout, QWidget *parent = nullptr);
-    virtual ~JsonSettingsWidget();
-
     struct SetupStack
     {
         static QJsonObject rectToArray(QVariant r);
@@ -40,6 +35,11 @@ public:
         void clear();
         void setValue(const QString &propertyId, QVariant value);
     };
+
+public:
+    explicit JsonSettingsWidget(QWidget *parent = nullptr);
+    explicit JsonSettingsWidget(const QByteArray &layout, QWidget *parent = nullptr);
+    virtual ~JsonSettingsWidget();
 
     bool loadSettingsFromFile(const QString &path);
     bool saveSettingsIntoFile(const QString &path);
