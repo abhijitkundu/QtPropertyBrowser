@@ -36,6 +36,13 @@
 			"tooltip" : "Keeek 3"
 		},
 		{
+			"control": "color",
+			"name": "colorness",
+			"title": "Color of?",
+			"value-default": "#FF00FF",
+			"tooltip" : "Just a color"
+		},
+		{
 			"control": "flagbox",
 			"name": "choice2",
 			"title": "Choose of:",
