@@ -13,21 +13,21 @@ IF(CMAKE_COMPILER_IS_GNUCC)
 
   SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
   SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-  SET (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native -funroll-loops -ffast-math")
-  SET (CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -march=native -funroll-loops")
+  SET (CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fomit-frame-pointer -funroll-loops -ffast-math")
+  SET (CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -fomit-frame-pointer -funroll-loops")
 
   OPTION (USE_PEDANTIC_FLAGS "Use Pedantic Flags in GCC" ON)
   IF(USE_PEDANTIC_FLAGS)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wno-long-long -Wno-variadic-macros")
     SET(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -pedantic -Wno-long-long -Wno-variadic-macros")
   ENDIF()
-  
+
   OPTION (USE_DEBUG_SYMBOLS "Use Debug Symbols" OFF)
   IF(USE_DEBUG_SYMBOLS)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
     SET(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -g")
   ENDIF()
-  
+
 ENDIF(CMAKE_COMPILER_IS_GNUCC)
 
 IF(NOT MSVC)
@@ -38,9 +38,9 @@ IF(NOT MSVC)
     CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
     
     IF(COMPILER_SUPPORTS_CXX11)
-  	  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+      SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
     ELSEIF(COMPILER_SUPPORTS_CXX0X)
-  	  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+      SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
     ELSE()
       SET(USE_CPP_11 OFF)
       MESSAGE(STATUS "Compiler ${CMAKE_CXX_COMPILER} has no C++11 support.")
