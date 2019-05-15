@@ -1531,7 +1531,7 @@ protected:
     void keyReleaseEvent(QKeyEvent *e);
     void paintEvent(QPaintEvent *);
     bool event(QEvent *e);
-private slots:
+private Q_SLOTS:
     void slotClearChar();
 private:
     void handleKeyEvent(QKeyEvent *e);
@@ -1591,7 +1591,7 @@ void QtCharEdit::slotClearChar()
     if (m_value.isNull())
         return;
     setValue(QChar());
-    emit valueChanged(m_value);
+    Q_EMIT valueChanged(m_value);
 }
 
 void QtCharEdit::handleKeyEvent(QKeyEvent *e)
@@ -1624,7 +1624,7 @@ void QtCharEdit::handleKeyEvent(QKeyEvent *e)
     const QString str = m_value.isNull() ? QString() : QString(m_value);
     m_lineEdit->setText(str);
     e->accept();
-    emit valueChanged(m_value);
+    Q_EMIT valueChanged(m_value);
 }
 
 void QtCharEdit::setValue(const QChar &value)
@@ -2432,7 +2432,7 @@ void QtFontEditWidget::buttonClicked()
         if (m_font.strikeOut() != newFont.strikeOut())
             f.setStrikeOut(newFont.strikeOut());
         setValue(f);
-        emit valueChanged(m_font);
+        Q_EMIT valueChanged(m_font);
     }
 }
 
