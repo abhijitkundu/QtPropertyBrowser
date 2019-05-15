@@ -235,9 +235,9 @@ void QtButtonPropertyBrowserPrivate::slotToggled(bool checked)
     setExpanded(item, checked);
 
     if (checked)
-        emit q_ptr->expanded(m_itemToIndex.value(item));
+        Q_EMIT q_ptr->expanded(m_itemToIndex.value(item));
     else
-        emit q_ptr->collapsed(m_itemToIndex.value(item));
+        Q_EMIT q_ptr->collapsed(m_itemToIndex.value(item));
 }
 
 void QtButtonPropertyBrowserPrivate::updateLater()
