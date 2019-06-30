@@ -9,6 +9,17 @@ MESSAGE(STATUS "==============================================================="
 MESSAGE(STATUS "============ Configuring CompileSettings  =====================")
 
 
+IF(APPLE)
+
+  # Unify visibility to meet llvm's default.
+  INCLUDE(CheckCXXCompilerFlag)
+  check_cxx_compiler_flag("-fvisibility-inlines-hidden" SUPPORTS_FVISIBILITY_INLINES_HIDDEN_FLAG)
+  IF(SUPPORTS_FVISIBILITY_INLINES_HIDDEN_FLAG)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility-inlines-hidden")
+  ENDIF()
+
+ENDIF(APPLE)
+
 IF(CMAKE_COMPILER_IS_GNUCC)
 
   SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
