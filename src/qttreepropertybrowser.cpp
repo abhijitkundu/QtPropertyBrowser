@@ -127,6 +127,9 @@ public:
     QTreeWidgetItem *indexToItem(const QModelIndex &index) const
         { return itemFromIndex(index); }
 
+    void setExpandedItem(const QTreeWidgetItem *item, bool expand) // Made to replace "setExpandedItem" which is deprecated now
+        { this->setExpanded(this->indexFromItem(item), expand); }
+
 protected:
     void keyPressEvent(QKeyEvent *event);
     void mousePressEvent(QMouseEvent *event);
@@ -586,7 +589,7 @@ void QtTreePropertyBrowserPrivate::propertyInserted(QtBrowserItem *index, QtBrow
     m_indexToItem[index] = newItem;
 
     newItem->setFlags(newItem->flags() | Qt::ItemIsEditable);
-    m_treeWidget->setItemExpanded(newItem, true);
+    m_treeWidget->setExpandedItem(newItem, true);
 
     updateItem(newItem);
 }
