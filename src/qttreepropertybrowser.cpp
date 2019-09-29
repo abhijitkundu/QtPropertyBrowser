@@ -128,7 +128,13 @@ public:
         { return itemFromIndex(index); }
 
     void setExpandedItem(const QTreeWidgetItem *item, bool expand) // Made to replace "setExpandedItem" which is deprecated now
-        { this->setExpanded(this->indexFromItem(item), expand); }
+        {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 7, 0)
+            this->setExpanded(this->indexFromItem(item), expand);
+#else
+            this->setItemExpanded(item, expand);
+#endif
+        }
 
 protected:
     void keyPressEvent(QKeyEvent *event);
