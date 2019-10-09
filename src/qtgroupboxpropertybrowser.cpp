@@ -56,7 +56,7 @@ class QtGroupBoxPropertyBrowserPrivate
     Q_DECLARE_PUBLIC(QtGroupBoxPropertyBrowser)
 public:
 
-    void init(QWidget *parent);
+    void init(QWidget *parent, bool frameLess);
 
     void propertyInserted(QtBrowserItem *index, QtBrowserItem *afterIndex);
     void propertyRemoved(QtBrowserItem *index);
@@ -70,11 +70,14 @@ public:
     struct WidgetItem
     {
         WidgetItem() : widget(0), label(0), widgetLabel(0),
+                groupBoxGroup(0), groupBoxFrame(0),
                 groupBox(0), layout(0), line(0), parent(0) { }
         QWidget *widget; // can be null
         QLabel *label;
         QLabel *widgetLabel;
-        QGroupBox *groupBox;
+        QGroupBox *groupBoxGroup;
+        QFrame *groupBoxFrame;
+        QWidget *groupBox;
         QGridLayout *layout;
         QFrame *line;
         WidgetItem *parent;
@@ -88,6 +91,7 @@ private:
 
     bool hasHeader(WidgetItem *item) const;
 
+    bool m_frameLess;
     QMap<QtBrowserItem *, WidgetItem *> m_indexToItem;
     QMap<WidgetItem *, QtBrowserItem *> m_itemToIndex;
     QMap<QWidget *, WidgetItem *> m_widgetToItem;
@@ -96,8 +100,9 @@ private:
     QList<WidgetItem *> m_recreateQueue;
 };
 
-void QtGroupBoxPropertyBrowserPrivate::init(QWidget *parent)
+void QtGroupBoxPropertyBrowserPrivate::init(QWidget *parent, bool frameLess)
 {
+    m_frameLess = frameLess;
     m_mainLayout = new QGridLayout();
     parent->setLayout(m_mainLayout);
     QLayoutItem *item = new QSpacerItem(0, 0,
@@ -218,8 +223,13 @@ void QtGroupBoxPropertyBrowserPrivate::propertyInserted(QtBrowserItem *index, Qt
                 if (hasHeader(par))
                     oldRow += 2;
             }
-            parentItem->groupBox = new QGroupBox(w);
+            if(m_frameLess)
+                parentItem->groupBox = parentItem->groupBoxFrame = new QFrame(w);
+            else
+                parentItem->groupBox = parentItem->groupBoxGroup = new QGroupBox(w);
             parentItem->layout = new QGridLayout();
+            if(m_frameLess)
+                parentItem->layout->setMargin(0);
             parentItem->groupBox->setLayout(parentItem->layout);
             if (parentItem->label) {
                 l->removeWidget(parentItem->label);
@@ -414,7 +424,8 @@ void QtGroupBoxPropertyBrowserPrivate::updateItem(WidgetItem *item)
         QFont font = item->groupBox->font();
         font.setUnderline(property->isModified());
         item->groupBox->setFont(font);
-        item->groupBox->setTitle(property->propertyName());
+        if(item->groupBoxGroup)
+            item->groupBoxGroup->setTitle(property->propertyName());
         item->groupBox->setToolTip(property->toolTip());
         item->groupBox->setStatusTip(property->statusTip());
         item->groupBox->setWhatsThis(property->whatsThis());
@@ -479,13 +490,13 @@ void QtGroupBoxPropertyBrowserPrivate::updateItem(WidgetItem *item)
 /*!
     Creates a property browser with the given \a parent.
 */
-QtGroupBoxPropertyBrowser::QtGroupBoxPropertyBrowser(QWidget *parent)
+QtGroupBoxPropertyBrowser::QtGroupBoxPropertyBrowser(QWidget *parent, bool frameLess)
     : QtAbstractPropertyBrowser(parent)
 {
     d_ptr = new QtGroupBoxPropertyBrowserPrivate;
     d_ptr->q_ptr = this;
 
-    d_ptr->init(this);
+    d_ptr->init(this, frameLess);
 }
 
 /*!
