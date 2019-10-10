@@ -326,6 +326,7 @@ public:
     void slotSingleStepChanged(QtProperty *property, double step);
     void slotDecimalsChanged(QtProperty *property, int prec);
     void slotValueChanged(QtProperty *property, bool val);
+    void slotTextVisibleChanged(QtProperty *property, bool textVisible);
     void slotValueChanged(QtProperty *property, const QString &val);
     void slotRegExpChanged(QtProperty *property, const QRegExp &regExp);
     void slotMaxLengthChanged(QtProperty *property, int maxlen);
@@ -375,6 +376,7 @@ public:
 
     QMap<QtProperty *, QtVariantProperty *> m_internalToProperty;
 
+    const QString m_textVisibleAttribute;
     const QString m_constraintAttribute;
     const QString m_singleStepAttribute;
     const QString m_decimalsAttribute;
@@ -388,6 +390,7 @@ public:
 };
 
 QtVariantPropertyManagerPrivate::QtVariantPropertyManagerPrivate() :
+    m_textVisibleAttribute(QLatin1String("textVisible")),
     m_constraintAttribute(QLatin1String("constraint")),
     m_singleStepAttribute(QLatin1String("singleStep")),
     m_decimalsAttribute(QLatin1String("decimals")),
@@ -540,6 +543,12 @@ void QtVariantPropertyManagerPrivate::slotDecimalsChanged(QtProperty *property, 
 void QtVariantPropertyManagerPrivate::slotValueChanged(QtProperty *property, bool val)
 {
     valueChanged(property, QVariant(val));
+}
+
+void QtVariantPropertyManagerPrivate::slotTextVisibleChanged(QtProperty *property, bool textVisible)
+{
+    if (QtVariantProperty *varProp = m_internalToProperty.value(property, 0))
+        emit q_ptr->attributeChanged(varProp, m_textVisibleAttribute, QVariant(textVisible));
 }
 
 void QtVariantPropertyManagerPrivate::slotValueChanged(QtProperty *property, const QString &val)
@@ -990,8 +999,12 @@ QtVariantPropertyManager::QtVariantPropertyManager(QObject *parent)
     QtBoolPropertyManager *boolPropertyManager = new QtBoolPropertyManager(this);
     d_ptr->m_typeToPropertyManager[QVariant::Bool] = boolPropertyManager;
     d_ptr->m_typeToValueType[QVariant::Bool] = QVariant::Bool;
+    d_ptr->m_typeToAttributeToAttributeType[QVariant::Bool][d_ptr->m_textVisibleAttribute] =
+            QVariant::Bool;
     connect(boolPropertyManager, SIGNAL(valueChanged(QtProperty *, bool)),
                 this, SLOT(slotValueChanged(QtProperty *, bool)));
+    connect(boolPropertyManager, SIGNAL(textVisibleChanged(QtProperty *, bool)),
+                this, SLOT(slotTextVisibleChanged(QtProperty *, bool)));
     // StringPropertyManager
     QtStringPropertyManager *stringPropertyManager = new QtStringPropertyManager(this);
     d_ptr->m_typeToPropertyManager[QVariant::String] = stringPropertyManager;
@@ -1536,6 +1549,10 @@ QVariant QtVariantPropertyManager::attributeValue(const QtProperty *property, co
         if (attribute == d_ptr->m_decimalsAttribute)
             return doubleManager->decimals(internProp);
         return QVariant();
+    } else if (QtBoolPropertyManager *boolManager = qobject_cast<QtBoolPropertyManager *>(manager)) {
+        if (attribute == d_ptr->m_textVisibleAttribute)
+            return boolManager->textVisible(internProp);
+        return QVariant();
     } else if (QtStringPropertyManager *stringManager = qobject_cast<QtStringPropertyManager *>(manager)) {
         if (attribute == d_ptr->m_regExpAttribute)
             return stringManager->regExp(internProp);
@@ -1780,6 +1797,10 @@ void QtVariantPropertyManager::setAttribute(QtProperty *property,
             doubleManager->setSingleStep(internProp, value.value<double>());
         if (attribute == d_ptr->m_decimalsAttribute)
             doubleManager->setDecimals(internProp, value.value<int>());
+        return;
+    } else if (QtBoolPropertyManager *boolManager = qobject_cast<QtBoolPropertyManager *>(manager)) {
+        if (attribute == d_ptr->m_textVisibleAttribute)
+            boolManager->setTextVisible(internProp, value.value<bool>());
         return;
     } else if (QtStringPropertyManager *stringManager = qobject_cast<QtStringPropertyManager *>(manager)) {
         if (attribute == d_ptr->m_regExpAttribute)

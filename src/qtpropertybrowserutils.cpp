@@ -215,11 +215,28 @@ void QtBoolEdit::setTextVisible(bool textVisible)
         return;
 
     m_textVisible = textVisible;
+    updateText();
+}
+
+void QtBoolEdit::setLabel(QString label)
+{
+    m_checkBoxLabel = label;
+    updateText();
+}
+
+void QtBoolEdit::updateText()
+{
     if (m_textVisible)
-        m_checkBox->setText(isChecked() ? tr("True") : tr("False"));
+    {
+        if(m_checkBoxLabel.isEmpty())
+            m_checkBox->setText(isChecked() ? tr("True") : tr("False"));
+        else
+            m_checkBox->setText(m_checkBoxLabel);
+    }
     else
         m_checkBox->setText(QString());
 }
+
 
 Qt::CheckState QtBoolEdit::checkState() const
 {
@@ -239,7 +256,7 @@ bool QtBoolEdit::isChecked() const
 void QtBoolEdit::setChecked(bool c)
 {
     m_checkBox->setChecked(c);
-    if (!m_textVisible)
+    if (!m_textVisible || !m_checkBoxLabel.isEmpty())
         return;
     m_checkBox->setText(isChecked() ? tr("True") : tr("False"));
 }

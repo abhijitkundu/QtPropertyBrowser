@@ -105,6 +105,9 @@ public:
     bool textVisible() const { return m_textVisible; }
     void setTextVisible(bool textVisible);
 
+    QString label() const { return m_checkBoxLabel; }
+    void setLabel(QString label);
+
     Qt::CheckState checkState() const;
     void setCheckState(Qt::CheckState state);
 
@@ -121,7 +124,10 @@ protected:
     void paintEvent(QPaintEvent *);
 
 private:
+    void updateText();
+
     QCheckBox *m_checkBox;
+    QString m_checkBoxLabel;
     bool m_textVisible;
 };
 

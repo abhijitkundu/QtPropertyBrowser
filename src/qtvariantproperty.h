@@ -128,6 +128,7 @@ private:
     Q_PRIVATE_SLOT(d_func(), void slotSingleStepChanged(QtProperty *, double))
     Q_PRIVATE_SLOT(d_func(), void slotDecimalsChanged(QtProperty *, int))
     Q_PRIVATE_SLOT(d_func(), void slotValueChanged(QtProperty *, bool))
+    Q_PRIVATE_SLOT(d_func(), void slotTextVisibleChanged(QtProperty *, bool))
     Q_PRIVATE_SLOT(d_func(), void slotValueChanged(QtProperty *, const QString &))
     Q_PRIVATE_SLOT(d_func(), void slotRegExpChanged(QtProperty *, const QRegExp &))
     Q_PRIVATE_SLOT(d_func(), void slotMaxLengthChanged(QtProperty *, int))

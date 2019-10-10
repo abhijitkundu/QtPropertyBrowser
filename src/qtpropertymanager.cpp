@@ -1453,7 +1453,15 @@ class QtBoolPropertyManagerPrivate
     Q_DECLARE_PUBLIC(QtBoolPropertyManager)
 public:
 
-    QMap<const QtProperty *, bool> m_values;
+    struct Data
+    {
+        Data() : val(false), textVisible(true) {}
+        bool val;
+        bool textVisible;
+    };
+
+    typedef QMap<const QtProperty *, Data> PropertyValueMap;
+    PropertyValueMap m_values;
 };
 
 /*!
@@ -1498,6 +1506,11 @@ QtBoolPropertyManager::~QtBoolPropertyManager()
     delete d_ptr;
 }
 
+bool QtBoolPropertyManager::textVisible(const QtProperty *property) const
+{
+    return getData<bool>(d_ptr->m_values, &QtBoolPropertyManagerPrivate::Data::textVisible, property, true);
+}
+
 /*!
     Returns the given \a property's value.
 
@@ -1508,7 +1521,22 @@ QtBoolPropertyManager::~QtBoolPropertyManager()
 */
 bool QtBoolPropertyManager::value(const QtProperty *property) const
 {
-    return d_ptr->m_values.value(property, false);
+    return getValue<bool>(d_ptr->m_values, property, false);
+}
+
+void QtBoolPropertyManager::setTextVisible(QtProperty *property, bool textVisible)
+{
+    const QtBoolPropertyManagerPrivate::PropertyValueMap::iterator it = d_ptr->m_values.find(property);
+    if (it == d_ptr->m_values.end())
+        return;
+
+    QtBoolPropertyManagerPrivate::Data data = it.value();
+    if (data.textVisible == textVisible)
+        return;
+
+    data.textVisible = textVisible;
+    it.value() = data;
+    emit textVisibleChanged(property, data.textVisible);
 }
 
 /*!
@@ -1516,13 +1544,13 @@ bool QtBoolPropertyManager::value(const QtProperty *property) const
 */
 QString QtBoolPropertyManager::valueText(const QtProperty *property) const
 {
-    const QMap<const QtProperty *, bool>::const_iterator it = d_ptr->m_values.constFind(property);
+    const QtBoolPropertyManagerPrivate::PropertyValueMap::const_iterator it = d_ptr->m_values.constFind(property);
     if (it == d_ptr->m_values.constEnd())
         return QString();
 
     static const QString trueText = tr("True");
     static const QString falseText = tr("False");
-    return it.value() ? trueText : falseText;
+    return it.value().val ? trueText : falseText;
 }
 
 // Return an icon containing a check box indicator
@@ -1561,13 +1589,13 @@ static QIcon drawCheckBox(bool value)
 */
 QIcon QtBoolPropertyManager::valueIcon(const QtProperty *property) const
 {
-    const QMap<const QtProperty *, bool>::const_iterator it = d_ptr->m_values.constFind(property);
+    const QtBoolPropertyManagerPrivate::PropertyValueMap::const_iterator it = d_ptr->m_values.constFind(property);
     if (it == d_ptr->m_values.constEnd())
         return QIcon();
 
     static const QIcon checkedIcon = drawCheckBox(true);
     static const QIcon uncheckedIcon = drawCheckBox(false);
-    return it.value() ? checkedIcon : uncheckedIcon;
+    return it.value().val ? checkedIcon : uncheckedIcon;
 }
 
 /*!
@@ -1579,10 +1607,16 @@ QIcon QtBoolPropertyManager::valueIcon(const QtProperty *property) const
 */
 void QtBoolPropertyManager::setValue(QtProperty *property, bool val)
 {
-    setSimpleValue<bool, bool, QtBoolPropertyManager>(d_ptr->m_values, this,
-                &QtBoolPropertyManager::propertyChanged,
-                &QtBoolPropertyManager::valueChanged,
-                property, val);
+    QtBoolPropertyManagerPrivate::PropertyValueMap::iterator it = d_ptr->m_values.find(property);
+    if (it == d_ptr->m_values.end())
+        return;
+    QtBoolPropertyManagerPrivate::Data data = it.value();
+    if (data.val == val)
+        return;
+
+    data.val = val;
+    it.value() = data;
+    emit valueChanged(property, data.val);
 }
 
 /*!
@@ -1590,7 +1624,7 @@ void QtBoolPropertyManager::setValue(QtProperty *property, bool val)
 */
 void QtBoolPropertyManager::initializeProperty(QtProperty *property)
 {
-    d_ptr->m_values[property] = false;
+    d_ptr->m_values[property].val = false;
 }
 
 /*!

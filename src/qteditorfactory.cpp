@@ -606,7 +606,9 @@ class QtCheckBoxFactoryPrivate : public EditorFactoryPrivate<QtBoolEdit>
     Q_DECLARE_PUBLIC(QtCheckBoxFactory)
 public:
     void slotPropertyChanged(QtProperty *property, bool value);
+    void slotTextVisibleChanged(QtProperty *property, bool);
     void slotSetValue(bool value);
+    void slotSetTextVisible(bool);
 };
 
 void QtCheckBoxFactoryPrivate::slotPropertyChanged(QtProperty *property, bool value)
@@ -623,6 +625,24 @@ void QtCheckBoxFactoryPrivate::slotPropertyChanged(QtProperty *property, bool va
     }
 }
 
+void QtCheckBoxFactoryPrivate::slotTextVisibleChanged(QtProperty *property, bool textVisible)
+{
+    if (!m_createdEditors.contains(property))
+        return;
+
+    QtBoolPropertyManager *manager = q_ptr->propertyManager(property);
+    if (!manager)
+        return;
+
+    QListIterator<QtBoolEdit *> itEditor(m_createdEditors[property]);
+    while (itEditor.hasNext()) {
+        QtBoolEdit *editor = itEditor.next();
+        editor->blockCheckBoxSignals(true);
+        editor->setTextVisible(textVisible);
+        editor->blockCheckBoxSignals(false);
+    }
+}
+
 void QtCheckBoxFactoryPrivate::slotSetValue(bool value)
 {
     QObject *object = q_ptr->sender();
@@ -635,6 +655,22 @@ void QtCheckBoxFactoryPrivate::slotSetValue(bool value)
             if (!manager)
                 return;
             manager->setValue(property, value);
+            return;
+        }
+}
+
+void QtCheckBoxFactoryPrivate::slotSetTextVisible(bool textVisible)
+{
+    QObject *object = q_ptr->sender();
+
+    const QMap<QtBoolEdit *, QtProperty *>::ConstIterator ecend = m_editorToProperty.constEnd();
+    for (QMap<QtBoolEdit *, QtProperty *>::ConstIterator itEditor = m_editorToProperty.constBegin(); itEditor != ecend;  ++itEditor)
+        if (itEditor.key() == object) {
+            QtProperty *property = itEditor.value();
+            QtBoolPropertyManager *manager = q_ptr->propertyManager(property);
+            if (!manager)
+                return;
+            manager->setTextVisible(property, textVisible);
             return;
         }
 }
@@ -677,6 +713,8 @@ void QtCheckBoxFactory::connectPropertyManager(QtBoolPropertyManager *manager)
 {
     connect(manager, SIGNAL(valueChanged(QtProperty *, bool)),
                 this, SLOT(slotPropertyChanged(QtProperty *, bool)));
+    connect(manager, SIGNAL(textVisibleChanged(QtProperty *, bool)),
+                this, SLOT(slotTextVisibleChanged(QtProperty *, bool)));
 }
 
 /*!
@@ -688,8 +726,8 @@ QWidget *QtCheckBoxFactory::createEditor(QtBoolPropertyManager *manager, QtPrope
         QWidget *parent)
 {
     QtBoolEdit *editor = d_ptr->createEditor(property, parent);
+    editor->setTextVisible(manager->textVisible(property));
     editor->setChecked(manager->value(property));
-
     connect(editor, SIGNAL(toggled(bool)), this, SLOT(slotSetValue(bool)));
     connect(editor, SIGNAL(destroyed(QObject *)),
                 this, SLOT(slotEditorDestroyed(QObject *)));
@@ -705,6 +743,8 @@ void QtCheckBoxFactory::disconnectPropertyManager(QtBoolPropertyManager *manager
 {
     disconnect(manager, SIGNAL(valueChanged(QtProperty *, bool)),
                 this, SLOT(slotPropertyChanged(QtProperty *, bool)));
+    disconnect(manager, SIGNAL(textVisibleChanged(QtProperty *, bool)),
+                this, SLOT(slotTextVisibleChanged(QtProperty *, bool)));
 }
 
 // QtDoubleSpinBoxFactory
