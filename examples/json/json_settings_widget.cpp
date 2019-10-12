@@ -638,7 +638,7 @@ QtAbstractPropertyBrowser *JsonSettingsWidget::loadLayoutDetail(JsonSettingsWidg
     title = layoutData["title"].toString();
     if(style == "groupbox")
         gui = new QtGroupBoxPropertyBrowser(qobject_cast<QWidget*>(parent()));
-    if(style == "frame")
+    else if(style == "frame")
         gui = new QtGroupBoxPropertyBrowser(qobject_cast<QWidget*>(parent()), true);
     else if(style == "button")
         gui = new QtButtonPropertyBrowser(qobject_cast<QWidget*>(parent()));
