@@ -223,12 +223,12 @@ void QtGroupBoxPropertyBrowserPrivate::propertyInserted(QtBrowserItem *index, Qt
                 if (hasHeader(par))
                     oldRow += 2;
             }
-            if(m_frameLess)
+            if(m_frameLess && !par)
                 parentItem->groupBox = parentItem->groupBoxFrame = new QFrame(w);
             else
                 parentItem->groupBox = parentItem->groupBoxGroup = new QGroupBox(w);
             parentItem->layout = new QGridLayout();
-            if(m_frameLess)
+            if(m_frameLess && !par)
                 parentItem->layout->setMargin(0);
             parentItem->groupBox->setLayout(parentItem->layout);
             if (parentItem->label) {
