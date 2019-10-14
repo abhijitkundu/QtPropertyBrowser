@@ -42,6 +42,10 @@
 #define QTPROPERTYMANAGER_H
 
 #include "qtpropertybrowser.h"
+#include "managers/group_property.h"
+#include "managers/int_property.h"
+#include "managers/double_property.h"
+#include "managers/bool_property.h"
 
 #if QT_VERSION >= 0x040400
 QT_BEGIN_NAMESPACE
@@ -52,119 +56,6 @@ class QTime;
 class QDateTime;
 class QLocale;
 
-class QT_QTPROPERTYBROWSER_EXPORT QtGroupPropertyManager : public QtAbstractPropertyManager
-{
-    Q_OBJECT
-public:
-    QtGroupPropertyManager(QObject *parent = 0);
-    ~QtGroupPropertyManager();
-
-protected:
-    virtual bool hasValue(const QtProperty *property) const;
-
-    virtual void initializeProperty(QtProperty *property);
-    virtual void uninitializeProperty(QtProperty *property);
-};
-
-class QtIntPropertyManagerPrivate;
-
-class QT_QTPROPERTYBROWSER_EXPORT QtIntPropertyManager : public QtAbstractPropertyManager
-{
-    Q_OBJECT
-public:
-    QtIntPropertyManager(QObject *parent = 0);
-    ~QtIntPropertyManager();
-
-    int value(const QtProperty *property) const;
-    int minimum(const QtProperty *property) const;
-    int maximum(const QtProperty *property) const;
-    int singleStep(const QtProperty *property) const;
-
-public Q_SLOTS:
-    void setValue(QtProperty *property, int val);
-    void setMinimum(QtProperty *property, int minVal);
-    void setMaximum(QtProperty *property, int maxVal);
-    void setRange(QtProperty *property, int minVal, int maxVal);
-    void setSingleStep(QtProperty *property, int step);
-Q_SIGNALS:
-    void valueChanged(QtProperty *property, int val);
-    void rangeChanged(QtProperty *property, int minVal, int maxVal);
-    void singleStepChanged(QtProperty *property, int step);
-protected:
-    QString valueText(const QtProperty *property) const;
-    virtual void initializeProperty(QtProperty *property);
-    virtual void uninitializeProperty(QtProperty *property);
-private:
-    QtIntPropertyManagerPrivate *d_ptr;
-    Q_DECLARE_PRIVATE(QtIntPropertyManager)
-    Q_DISABLE_COPY(QtIntPropertyManager)
-};
-
-class QtBoolPropertyManagerPrivate;
-
-class QT_QTPROPERTYBROWSER_EXPORT QtBoolPropertyManager : public QtAbstractPropertyManager
-{
-    Q_OBJECT
-public:
-    QtBoolPropertyManager(QObject *parent = 0);
-    ~QtBoolPropertyManager();
-
-    bool value(const QtProperty *property) const;
-    bool textVisible(const QtProperty *property) const;
-
-public Q_SLOTS:
-    void setValue(QtProperty *property, bool val);
-    void setTextVisible(QtProperty *property, bool textVisible);
-Q_SIGNALS:
-    void valueChanged(QtProperty *property, bool val);
-    void textVisibleChanged(QtProperty *property, bool textVisible);
-protected:
-    QString valueText(const QtProperty *property) const;
-    QIcon valueIcon(const QtProperty *property) const;
-    virtual void initializeProperty(QtProperty *property);
-    virtual void uninitializeProperty(QtProperty *property);
-private:
-    QtBoolPropertyManagerPrivate *d_ptr;
-    Q_DECLARE_PRIVATE(QtBoolPropertyManager)
-    Q_DISABLE_COPY(QtBoolPropertyManager)
-};
-
-class QtDoublePropertyManagerPrivate;
-
-class QT_QTPROPERTYBROWSER_EXPORT QtDoublePropertyManager : public QtAbstractPropertyManager
-{
-    Q_OBJECT
-public:
-    QtDoublePropertyManager(QObject *parent = 0);
-    ~QtDoublePropertyManager();
-
-    double value(const QtProperty *property) const;
-    double minimum(const QtProperty *property) const;
-    double maximum(const QtProperty *property) const;
-    double singleStep(const QtProperty *property) const;
-    int decimals(const QtProperty *property) const;
-
-public Q_SLOTS:
-    void setValue(QtProperty *property, double val);
-    void setMinimum(QtProperty *property, double minVal);
-    void setMaximum(QtProperty *property, double maxVal);
-    void setRange(QtProperty *property, double minVal, double maxVal);
-    void setSingleStep(QtProperty *property, double step);
-    void setDecimals(QtProperty *property, int prec);
-Q_SIGNALS:
-    void valueChanged(QtProperty *property, double val);
-    void rangeChanged(QtProperty *property, double minVal, double maxVal);
-    void singleStepChanged(QtProperty *property, double step);
-    void decimalsChanged(QtProperty *property, int prec);
-protected:
-    QString valueText(const QtProperty *property) const;
-    virtual void initializeProperty(QtProperty *property);
-    virtual void uninitializeProperty(QtProperty *property);
-private:
-    QtDoublePropertyManagerPrivate *d_ptr;
-    Q_DECLARE_PRIVATE(QtDoublePropertyManager)
-    Q_DISABLE_COPY(QtDoublePropertyManager)
-};
 
 class QtStringPropertyManagerPrivate;
 

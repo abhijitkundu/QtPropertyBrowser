@@ -6,15 +6,20 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set(_SRCS
-  qtbuttonpropertybrowser.cpp
-  qteditorfactory.cpp
-  qtgroupboxpropertybrowser.cpp
-  qtpropertybrowser.cpp
-  qtpropertybrowserutils.cpp
-  qtpropertymanager.cpp
-  qttreepropertybrowser.cpp
-  qtvariantproperty.cpp
-  )
+    qtbuttonpropertybrowser.cpp
+    qteditorfactory.cpp
+    qtgroupboxpropertybrowser.cpp
+    qtpropertybrowser.cpp
+    qtpropertybrowserutils.cpp
+    qtpropertymanager.cpp
+    qttreepropertybrowser.cpp
+    qtvariantproperty.cpp
+    managers/group_property.cpp
+    managers/int_property.cpp
+    managers/double_property.cpp
+    managers/bool_property.cpp
+    managers/common.cpp
+)
 
 file(GLOB _IMPL_HDRS *.h)
 file(GLOB _PUBLIC_HDRS Qt*)
