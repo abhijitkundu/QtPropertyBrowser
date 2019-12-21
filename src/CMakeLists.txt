@@ -14,6 +14,7 @@ set(_SRCS
     qtpropertymanager.cpp
     qttreepropertybrowser.cpp
     qtvariantproperty.cpp
+    managers/color_property.cpp
     managers/group_property.cpp
     managers/int_property.cpp
     managers/double_property.cpp

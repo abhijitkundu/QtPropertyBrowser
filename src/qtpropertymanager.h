@@ -46,6 +46,7 @@
 #include "managers/int_property.h"
 #include "managers/double_property.h"
 #include "managers/bool_property.h"
+#include "managers/color_property.h"
 
 #if QT_VERSION >= 0x040400
 QT_BEGIN_NAMESPACE
@@ -581,35 +582,6 @@ private:
     Q_PRIVATE_SLOT(d_func(), void slotFontDatabaseDelayedChange())
 };
 
-class QtColorPropertyManagerPrivate;
-
-class QT_QTPROPERTYBROWSER_EXPORT QtColorPropertyManager : public QtAbstractPropertyManager
-{
-    Q_OBJECT
-public:
-    QtColorPropertyManager(QObject *parent = 0);
-    ~QtColorPropertyManager();
-
-    QtIntPropertyManager *subIntPropertyManager() const;
-
-    QColor value(const QtProperty *property) const;
-
-public Q_SLOTS:
-    void setValue(QtProperty *property, const QColor &val);
-Q_SIGNALS:
-    void valueChanged(QtProperty *property, const QColor &val);
-protected:
-    QString valueText(const QtProperty *property) const;
-    QIcon valueIcon(const QtProperty *property) const;
-    virtual void initializeProperty(QtProperty *property);
-    virtual void uninitializeProperty(QtProperty *property);
-private:
-    QtColorPropertyManagerPrivate *d_ptr;
-    Q_DECLARE_PRIVATE(QtColorPropertyManager)
-    Q_DISABLE_COPY(QtColorPropertyManager)
-    Q_PRIVATE_SLOT(d_func(), void slotIntChanged(QtProperty *, int))
-    Q_PRIVATE_SLOT(d_func(), void slotPropertyDestroyed(QtProperty *))
-};
 
 class QtCursorPropertyManagerPrivate;
 
