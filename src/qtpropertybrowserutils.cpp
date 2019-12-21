@@ -156,7 +156,7 @@ QIcon QtPropertyBrowserUtils::brushValueIcon(const QBrush &b)
 
 QString QtPropertyBrowserUtils::colorValueText(const QColor &c)
 {
-    return QApplication::translate("QtPropertyBrowserUtils", "[%1, %2, %3] (%4)", 0)
+    return QApplication::translate("QtPropertyBrowserUtils", "[%1, %2, %3] (%4)", nullptr)
                                   .arg(QString::number(c.red()))
                                   .arg(QString::number(c.green()))
                                   .arg(QString::number(c.blue()))
@@ -186,7 +186,7 @@ QIcon QtPropertyBrowserUtils::fontValueIcon(const QFont &f)
 
 QString QtPropertyBrowserUtils::fontValueText(const QFont &f)
 {
-    return QApplication::translate("QtPropertyBrowserUtils", "[%1, %2]", 0)
+    return QApplication::translate("QtPropertyBrowserUtils", "[%1, %2]", nullptr)
                                   .arg(f.family())
                                   .arg(f.pointSize());
 }
@@ -315,7 +315,7 @@ bool QtKeySequenceEdit::eventFilter(QObject *o, QEvent *e)
                 actionString.remove(pos, actionString.length() - pos);
             action->setText(actionString);
         }
-        QAction *actionBefore = 0;
+        QAction *actionBefore = nullptr;
         if (actions.count() > 0)
             actionBefore = actions[0];
         QAction *clearAction = new QAction(tr("Clear Shortcut"), menu);

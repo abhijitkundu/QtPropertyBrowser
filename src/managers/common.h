@@ -77,6 +77,13 @@ static SizeValue qBoundSize(const SizeValue &minVal, const SizeValue &val, const
     return croppedVal;
 }
 
+template <class T>
+bool floatEqual(T x, T y)
+{
+    int64_t xi = int64_t(x * 10000000.0);
+    int64_t yi = int64_t(y * 10000000.0);
+    return (xi == yi);
+}
 
 // Match the exact signature of qBound for VS 6.
 QSize qBound(QSize minVal, QSize val, QSize maxVal);

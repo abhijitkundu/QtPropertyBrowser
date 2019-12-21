@@ -53,7 +53,7 @@ class QT_QTPROPERTYBROWSER_EXPORT QtSpinBoxFactory : public QtAbstractEditorFact
 {
     Q_OBJECT
 public:
-    QtSpinBoxFactory(QObject *parent = 0);
+    QtSpinBoxFactory(QObject *parent = nullptr);
     ~QtSpinBoxFactory();
 protected:
     void connectPropertyManager(QtIntPropertyManager *manager);
@@ -77,7 +77,7 @@ class QT_QTPROPERTYBROWSER_EXPORT QtSliderFactory : public QtAbstractEditorFacto
 {
     Q_OBJECT
 public:
-    QtSliderFactory(QObject *parent = 0);
+    QtSliderFactory(QObject *parent = nullptr);
     ~QtSliderFactory();
 protected:
     void connectPropertyManager(QtIntPropertyManager *manager);
@@ -381,7 +381,7 @@ class QT_QTPROPERTYBROWSER_EXPORT QtFontEditorFactory : public QtAbstractEditorF
 {
     Q_OBJECT
 public:
-    QtFontEditorFactory(QObject *parent = 0);
+    QtFontEditorFactory(QObject *parent = nullptr);
     ~QtFontEditorFactory();
 protected:
     void connectPropertyManager(QtFontPropertyManager *manager);
