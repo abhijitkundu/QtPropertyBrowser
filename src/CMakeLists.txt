@@ -17,6 +17,9 @@ set(_SRCS
     managers/color_property.cpp
     managers/group_property.cpp
     managers/string_property.cpp
+    managers/date_property.cpp
+    managers/time_property.cpp
+    managers/datetime_property.cpp
     managers/int_property.cpp
     managers/double_property.cpp
     managers/bool_property.cpp

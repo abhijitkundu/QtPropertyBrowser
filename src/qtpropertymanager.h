@@ -44,6 +44,9 @@
 #include "qtpropertybrowser.h"
 #include "managers/group_property.h"
 #include "managers/int_property.h"
+#include "managers/date_property.h"
+#include "managers/time_property.h"
+#include "managers/datetime_property.h"
 #include "managers/double_property.h"
 #include "managers/bool_property.h"
 #include "managers/color_property.h"
@@ -59,87 +62,6 @@ class QDateTime;
 class QLocale;
 
 
-
-class QtDatePropertyManagerPrivate;
-
-class QT_QTPROPERTYBROWSER_EXPORT QtDatePropertyManager : public QtAbstractPropertyManager
-{
-    Q_OBJECT
-public:
-    QtDatePropertyManager(QObject *parent = nullptr);
-    ~QtDatePropertyManager();
-
-    QDate value(const QtProperty *property) const;
-    QDate minimum(const QtProperty *property) const;
-    QDate maximum(const QtProperty *property) const;
-
-public Q_SLOTS:
-    void setValue(QtProperty *property, const QDate &val);
-    void setMinimum(QtProperty *property, const QDate &minVal);
-    void setMaximum(QtProperty *property, const QDate &maxVal);
-    void setRange(QtProperty *property, const QDate &minVal, const QDate &maxVal);
-Q_SIGNALS:
-    void valueChanged(QtProperty *property, const QDate &val);
-    void rangeChanged(QtProperty *property, const QDate &minVal, const QDate &maxVal);
-protected:
-    QString valueText(const QtProperty *property) const;
-    virtual void initializeProperty(QtProperty *property);
-    virtual void uninitializeProperty(QtProperty *property);
-private:
-    QtDatePropertyManagerPrivate *d_ptr;
-    Q_DECLARE_PRIVATE(QtDatePropertyManager)
-    Q_DISABLE_COPY(QtDatePropertyManager)
-};
-
-class QtTimePropertyManagerPrivate;
-
-class QT_QTPROPERTYBROWSER_EXPORT QtTimePropertyManager : public QtAbstractPropertyManager
-{
-    Q_OBJECT
-public:
-    QtTimePropertyManager(QObject *parent = nullptr);
-    ~QtTimePropertyManager();
-
-    QTime value(const QtProperty *property) const;
-
-public Q_SLOTS:
-    void setValue(QtProperty *property, const QTime &val);
-Q_SIGNALS:
-    void valueChanged(QtProperty *property, const QTime &val);
-protected:
-    QString valueText(const QtProperty *property) const;
-    virtual void initializeProperty(QtProperty *property);
-    virtual void uninitializeProperty(QtProperty *property);
-private:
-    QtTimePropertyManagerPrivate *d_ptr;
-    Q_DECLARE_PRIVATE(QtTimePropertyManager)
-    Q_DISABLE_COPY(QtTimePropertyManager)
-};
-
-class QtDateTimePropertyManagerPrivate;
-
-class QT_QTPROPERTYBROWSER_EXPORT QtDateTimePropertyManager : public QtAbstractPropertyManager
-{
-    Q_OBJECT
-public:
-    QtDateTimePropertyManager(QObject *parent = nullptr);
-    ~QtDateTimePropertyManager();
-
-    QDateTime value(const QtProperty *property) const;
-
-public Q_SLOTS:
-    void setValue(QtProperty *property, const QDateTime &val);
-Q_SIGNALS:
-    void valueChanged(QtProperty *property, const QDateTime &val);
-protected:
-    QString valueText(const QtProperty *property) const;
-    virtual void initializeProperty(QtProperty *property);
-    virtual void uninitializeProperty(QtProperty *property);
-private:
-    QtDateTimePropertyManagerPrivate *d_ptr;
-    Q_DECLARE_PRIVATE(QtDateTimePropertyManager)
-    Q_DISABLE_COPY(QtDateTimePropertyManager)
-};
 
 class QtKeySequencePropertyManagerPrivate;
 
