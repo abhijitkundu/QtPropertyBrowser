@@ -16,6 +16,7 @@ set(_SRCS
     qtvariantproperty.cpp
     managers/color_property.cpp
     managers/group_property.cpp
+    managers/string_property.cpp
     managers/int_property.cpp
     managers/double_property.cpp
     managers/bool_property.cpp
