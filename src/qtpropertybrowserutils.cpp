@@ -134,17 +134,27 @@ QPixmap QtPropertyBrowserUtils::brushValuePixmap(const QBrush &b)
     QImage img(16, 16, QImage::Format_ARGB32_Premultiplied);
     img.fill(0);
 
+    QBrush lg = QBrush(Qt::lightGray);
+    QBrush dg = QBrush(Qt::darkGray);
+    QPen noPen = QPen(Qt::NoPen);
+
     QPainter painter(&img);
-    painter.setCompositionMode(QPainter::CompositionMode_Source);
-    painter.fillRect(0, 0, img.width(), img.height(), b);
-    QColor color = b.color();
-    if (color.alpha() != 255) { // indicate alpha by an inset
-        QBrush  opaqueBrush = b;
-        color.setAlpha(255);
-        opaqueBrush.setColor(color);
-        painter.fillRect(img.width() / 4, img.height() / 4,
-                         img.width() / 2, img.height() / 2, opaqueBrush);
+    painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+    painter.setPen(noPen);
+    painter.setBrush(dg);
+
+    painter.fillRect(0, 0, img.width(), img.height(), lg);
+    for(int i = 0; i < 2; i++)
+    {
+        for(int j = 0; j < 2; j++)
+        {
+            painter.drawRect(i * 8, j * 8, 4, 4);
+            painter.drawRect(i * 8 + 4, j * 8 + 4, 4, 4);
+        }
     }
+
+    painter.fillRect(0, 0, img.width(), img.height(), b);
+
     painter.end();
     return QPixmap::fromImage(img);
 }
@@ -161,6 +171,15 @@ QString QtPropertyBrowserUtils::colorValueText(const QColor &c)
                                   .arg(QString::number(c.green()))
                                   .arg(QString::number(c.blue()))
                                   .arg(QString::number(c.alpha()));
+}
+
+QString QtPropertyBrowserUtils::colorHexValueText(const QColor &c)
+{
+    return QString("#%1%2%3%4")
+                .arg(c.red(), 2, 16, QChar('0'))
+                .arg(c.green(), 2, 16, QChar('0'))
+                .arg(c.blue(), 2, 16, QChar('0'))
+                .arg(c.alpha(), 2, 16, QChar('0'));
 }
 
 QPixmap QtPropertyBrowserUtils::fontValuePixmap(const QFont &font)

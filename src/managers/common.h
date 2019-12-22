@@ -1,6 +1,8 @@
 #include <QObject>
 #include <QSize>
 #include <QSizeF>
+#include <QLayout>
+#include <QApplication>
 
 #if QT_VERSION >= 0x040400
 QT_BEGIN_NAMESPACE
@@ -319,6 +321,19 @@ static void setMaximumValue(PropertyManager *manager, PropertyManagerPrivate *ma
     setBorderValue<ValueChangeParameter, PropertyManagerPrivate, PropertyManager, Value, PrivateData>(manager, managerPrivate,
             propertyChangedSignal, valueChangedSignal, rangeChangedSignal,
             property, &PropertyManagerPrivate::Data::maximumValue, &PropertyManagerPrivate::Data::setMaximumValue, maxVal, setSubPropertyRange);
+}
+
+
+// Set a hard coded left margin to account for the indentation
+// of the tree view icon when switching to an editor
+
+static inline void setupTreeViewEditorMargin(QLayout *lt)
+{
+    enum { DecorationMargin = 4 };
+    if (QApplication::layoutDirection() == Qt::LeftToRight)
+        lt->setContentsMargins(DecorationMargin, 0, 0, 0);
+    else
+        lt->setContentsMargins(0, 0, DecorationMargin, 0);
 }
 
 #if QT_VERSION >= 0x040400

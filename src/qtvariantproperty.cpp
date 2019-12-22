@@ -1185,8 +1185,10 @@ QtVariantPropertyManager::QtVariantPropertyManager(QObject *parent)
     d_ptr->m_typeToValueType[QVariant::Color] = QVariant::Color;
     connect(colorPropertyManager, SIGNAL(valueChanged(QtProperty *, const QColor &)),
                 this, SLOT(slotValueChanged(QtProperty *, const QColor &)));
-    connect(colorPropertyManager->subIntPropertyManager(), SIGNAL(valueChanged(QtProperty *, int)),
-                this, SLOT(slotValueChanged(QtProperty *, int)));
+//    connect(colorPropertyManager->subIntPropertyManager(), SIGNAL(valueChanged(QtProperty *, int)),
+//                this, SLOT(slotValueChanged(QtProperty *, int)));
+    connect(colorPropertyManager->subStringPropertyManager(), SIGNAL(valueChanged(QtProperty *, const QString&)),
+                this, SLOT(slotValueChanged(QtProperty *, const QString&)));
     connect(colorPropertyManager, SIGNAL(propertyInserted(QtProperty *, QtProperty *, QtProperty *)),
                 this, SLOT(slotPropertyInserted(QtProperty *, QtProperty *, QtProperty *)));
     connect(colorPropertyManager, SIGNAL(propertyRemoved(QtProperty *, QtProperty *)),
@@ -2196,7 +2198,7 @@ void QtVariantEditorFactory::connectPropertyManager(QtVariantPropertyManager *ma
     while (itColor.hasNext()) {
         QtColorPropertyManager *manager = itColor.next();
         d_ptr->m_colorEditorFactory->addPropertyManager(manager);
-        d_ptr->m_spinBoxFactory->addPropertyManager(manager->subIntPropertyManager());
+        d_ptr->m_lineEditFactory->addPropertyManager(manager->subStringPropertyManager());
     }
 
     QList<QtEnumPropertyManager *> enumPropertyManagers = manager->findChildren<QtEnumPropertyManager *>();
@@ -2351,7 +2353,7 @@ void QtVariantEditorFactory::disconnectPropertyManager(QtVariantPropertyManager 
     while (itColor.hasNext()) {
         QtColorPropertyManager *manager = itColor.next();
         d_ptr->m_colorEditorFactory->removePropertyManager(manager);
-        d_ptr->m_spinBoxFactory->removePropertyManager(manager->subIntPropertyManager());
+        d_ptr->m_lineEditFactory->removePropertyManager(manager->subStringPropertyManager());
     }
 
     QList<QtEnumPropertyManager *> enumPropertyManagers = manager->findChildren<QtEnumPropertyManager *>();
