@@ -89,7 +89,7 @@ private:
 class QtPropertyBrowserUtils
 {
 public:
-    static QPixmap brushValuePixmap(const QBrush &b);
+    static QPixmap brushValuePixmap(const QBrush &b, QSize fieldSizeHint = QSize());
     static QIcon brushValueIcon(const QBrush &b);
     static QString colorValueText(const QColor &c);
     static QString colorHexValueText(const QColor &c);

@@ -7,6 +7,7 @@
 #include <QHBoxLayout>
 #include <QKeyEvent>
 #include <QColorDialog>
+#include <QFontMetrics>
 #include <QStyle>
 #include <QPainter>
 #include <QLabel>
@@ -386,8 +387,9 @@ QtColorEditWidget::QtColorEditWidget(QWidget *parent) :
     QHBoxLayout *lt = new QHBoxLayout(this);
     setupTreeViewEditorMargin(lt);
     lt->setSpacing(4);
-    lt->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Ignored));
+    lt->setMargin(0);
     lt->addWidget(m_pixmapLabel);
+    lt->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Ignored));
     lt->addWidget(m_lineEdit);
     m_button->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Ignored);
     m_button->setFixedWidth(20);
@@ -398,18 +400,24 @@ QtColorEditWidget::QtColorEditWidget(QWidget *parent) :
     connect(m_button, SIGNAL(clicked()), this, SLOT(buttonClicked()));
     connect(m_lineEdit, SIGNAL(editingFinished()), this, SLOT(editFinished()));
     lt->addWidget(m_button);
-    m_pixmapLabel->setPixmap(QtPropertyBrowserUtils::brushValuePixmap(QBrush(m_color)));
     m_lineEdit->setText(QtPropertyBrowserUtils::colorHexValueText(m_color));
     m_lineEdit->setMaxLength(9);
-    m_lineEdit->setMaximumWidth(80);
+#ifdef _WIN32
+    m_lineEdit->setFont(QFont("Courier New"));
+#else
+    m_lineEdit->setFont(QFont("Monospace"));
+#endif
+    QFontMetrics meter = QFontMetrics(m_lineEdit->font());
     m_lineEdit->setValidator(new QRegExpValidator(QRegExp("#[0-9a-fA-F]{6,8}"), m_lineEdit));
+    m_pixmapLabel->setPixmap(QtPropertyBrowserUtils::brushValuePixmap(QBrush(m_color)));
+    m_lineEdit->setMaximumWidth(meter.width("#ffffffff", 9) + 10);
 }
 
 void QtColorEditWidget::setValue(const QColor &c)
 {
     if (m_color != c) {
         m_color = c;
-        m_pixmapLabel->setPixmap(QtPropertyBrowserUtils::brushValuePixmap(QBrush(c)));
+        m_pixmapLabel->setPixmap(QtPropertyBrowserUtils::brushValuePixmap(QBrush(c), m_lineEdit->sizeHint()));
         m_lineEdit->setText(QtPropertyBrowserUtils::colorHexValueText(c));
     }
 }

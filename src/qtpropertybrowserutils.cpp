@@ -129,13 +129,21 @@ QCursor QtCursorDatabase::valueToCursor(int value) const
 }
 #endif
 
-QPixmap QtPropertyBrowserUtils::brushValuePixmap(const QBrush &b)
+QPixmap QtPropertyBrowserUtils::brushValuePixmap(const QBrush &b, QSize fieldSizeHint)
 {
-    QImage img(16, 16, QImage::Format_ARGB32_Premultiplied);
+    int w = 16, h = 16;
+    if(fieldSizeHint.isValid())
+    {
+        w = fieldSizeHint.height();
+        h = w;
+    }
+
+    QImage img(w, h, QImage::Format_ARGB32_Premultiplied);
     img.fill(0);
 
     QBrush lg = QBrush(Qt::lightGray);
     QBrush dg = QBrush(Qt::darkGray);
+    QBrush bl = QBrush(Qt::black);
     QPen noPen = QPen(Qt::NoPen);
 
     QPainter painter(&img);
@@ -144,9 +152,9 @@ QPixmap QtPropertyBrowserUtils::brushValuePixmap(const QBrush &b)
     painter.setBrush(dg);
 
     painter.fillRect(0, 0, img.width(), img.height(), lg);
-    for(int i = 0; i < 2; i++)
+    for(int i = 0; i < h / 4; i++)
     {
-        for(int j = 0; j < 2; j++)
+        for(int j = 0; j < w / 4; j++)
         {
             painter.drawRect(i * 8, j * 8, 4, 4);
             painter.drawRect(i * 8 + 4, j * 8 + 4, 4, 4);
@@ -154,6 +162,10 @@ QPixmap QtPropertyBrowserUtils::brushValuePixmap(const QBrush &b)
     }
 
     painter.fillRect(0, 0, img.width(), img.height(), b);
+
+    painter.setPen(QPen(Qt::black));
+    painter.setBrush(QBrush(Qt::NoBrush));
+    painter.drawRect(0, 0, img.width() - 1, img.height() - 1);
 
     painter.end();
     return QPixmap::fromImage(img);
