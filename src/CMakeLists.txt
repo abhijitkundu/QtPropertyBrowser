@@ -26,7 +26,7 @@ set(_SRCS
     managers/common.cpp
 )
 
-file(GLOB _IMPL_HDRS *.h)
+file(GLOB _IMPL_HDRS *.h *.hpp)
 file(GLOB _IMPL_HDRS_MGRS managers/*.h)
 file(GLOB _PUBLIC_HDRS Qt*)
 
