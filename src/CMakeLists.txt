@@ -27,6 +27,7 @@ set(_SRCS
 )
 
 file(GLOB _IMPL_HDRS *.h)
+file(GLOB _IMPL_HDRS_MGRS managers/*.h)
 file(GLOB _PUBLIC_HDRS Qt*)
 
 set(_UI_FORMS
@@ -35,7 +36,7 @@ set(_UI_FORMS
 set(_RESOURCES
   qtpropertybrowser.qrc
   )
-  
+
 QT5_WRAP_UI(_UI_SRCS ${_UI_FORMS})
 QT5_ADD_RESOURCES(_QRC_SRCS ${_RESOURCES})
 
@@ -68,6 +69,15 @@ install(
     ${_IMPL_HDRS}
   DESTINATION
     ${INSTALL_INCLUDE_DIR}
+  COMPONENT
+    Devel
+)
+
+install(
+  FILES
+    ${_IMPL_HDRS_MGRS}
+  DESTINATION
+    ${INSTALL_INCLUDE_DIR}/managers
   COMPONENT
     Devel
 )
