@@ -24,8 +24,7 @@ class JsonSettingsWidget : public QObject
         QStack<QString> m_setupTree;
         QJsonDocument m_setupCache;
 
-        SetupStack()
-        {}
+        SetupStack() = default;
 
         QString getPropertyId(const QString &name);
 
@@ -45,11 +44,17 @@ public:
     bool saveSettingsIntoFile(const QString &path);
 
     bool loadSettings(const QByteArray &rawData);
+    bool loadSettings(const QString &rawData);
+    bool loadSettings(const QJsonDocument &rawData);
     QString saveSettings();
+    QJsonDocument getSettings();
 
     bool loadLayout(const QByteArray &layout);
     bool loadLayout(const QByteArray &settings, const QByteArray &layout);
+    bool loadLayout(const QJsonDocument &settings, const QByteArray &layout);
     bool loadLayoutFromFile(const QString &settings_path, const QString &layout_path);
+
+    bool spacerNeeded();
 
     bool isValid();
 
@@ -64,6 +69,7 @@ private:
     QString     m_errorString;
     SetupStack  m_setupStack;
     QtAbstractPropertyBrowser *m_browser = nullptr;
+    bool m_spacerNeeded = false;
 
     QVariant retrieve_property(const SetupStack &setupTree, QString prop, const QVariant &defaultValue);
 

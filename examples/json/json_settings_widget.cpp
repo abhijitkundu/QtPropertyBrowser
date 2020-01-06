@@ -5,6 +5,7 @@
 #include <QJsonParseError>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonValue>
 #include <QJsonArray>
 
 #include <qtpropertymanager.h>
@@ -13,7 +14,9 @@
 #include <qtbuttonpropertybrowser.h>
 #include <qttreepropertybrowser.h>
 
+#ifdef DEBUG_BUILD
 #include <QDebug>
+#endif
 
 QJsonObject JsonSettingsWidget::SetupStack::rectToArray(QVariant r)
 {
@@ -87,8 +90,15 @@ QString JsonSettingsWidget::SetupStack::getPropertyId(const QString &name)
 
 bool JsonSettingsWidget::SetupStack::loadSetup(const QByteArray &layoutJson, QString &errorString)
 {
-    QJsonParseError errCode;
+    QJsonParseError errCode = QJsonParseError();
+
     m_setupTree.clear();
+    if(layoutJson.isEmpty())
+    {
+        clear();
+        return true;
+    }
+
     m_setupCache = QJsonDocument::fromJson(layoutJson, &errCode);
     if(errCode.error != QJsonParseError::NoError)
     {
@@ -217,9 +227,28 @@ bool JsonSettingsWidget::loadSettings(const QByteArray &rawData)
     return m_setupStack.loadSetup(rawData, m_errorString);
 }
 
+bool JsonSettingsWidget::loadSettings(const QString &rawData)
+{
+    m_errorString.clear();
+    return m_setupStack.loadSetup(rawData.toUtf8(), m_errorString);
+}
+
+bool JsonSettingsWidget::loadSettings(const QJsonDocument &rawData)
+{
+    m_errorString.clear();
+    m_setupStack.m_setupTree.clear();
+    m_setupStack.m_setupCache = rawData;
+    return true;
+}
+
 QString JsonSettingsWidget::saveSettings()
 {
     return m_setupStack.saveSetup();
+}
+
+QJsonDocument JsonSettingsWidget::getSettings()
+{
+    return m_setupStack.m_setupCache;
 }
 
 bool JsonSettingsWidget::loadLayout(const QByteArray &layout)
@@ -229,6 +258,13 @@ bool JsonSettingsWidget::loadLayout(const QByteArray &layout)
 }
 
 bool JsonSettingsWidget::loadLayout(const QByteArray &settings, const QByteArray &layout)
+{
+    if(!loadSettings(settings))
+        return false;
+    return loadLayout(layout);
+}
+
+bool JsonSettingsWidget::loadLayout(const QJsonDocument &settings, const QByteArray &layout)
 {
     if(!loadSettings(settings))
         return false;
@@ -258,6 +294,11 @@ bool JsonSettingsWidget::loadLayoutFromFile(const QString &settings_path, const 
     f.close();
 
     return loadLayout(a);
+}
+
+bool JsonSettingsWidget::spacerNeeded()
+{
+    return m_spacerNeeded;
 }
 
 bool JsonSettingsWidget::isValid()
@@ -290,7 +331,9 @@ QVariant JsonSettingsWidget::retrieve_property(const JsonSettingsWidget::SetupSt
         outPr.append(" << ");
         if(!o.contains(t))
         {
+#ifdef DEBUG_BUILD
             qDebug() << outPr << prop << defaultValue << "DEFAULT-TREE";
+#endif
             return defaultValue;
         }
         o = o[t].toObject();
@@ -299,7 +342,9 @@ QVariant JsonSettingsWidget::retrieve_property(const JsonSettingsWidget::SetupSt
 
     if(!o.contains(prop))
     {
+#ifdef DEBUG_BUILD
         qDebug() << outPr << prop << defaultValue << "DEFAULT-PROP";
+#endif
         return defaultValue;
     }
 
@@ -346,7 +391,9 @@ QVariant JsonSettingsWidget::retrieve_property(const JsonSettingsWidget::SetupSt
         break;
     }
 
+#ifdef DEBUG_BUILD
     qDebug() << outPr << prop << out << "INPUT";
+#endif
 
     return out;
 }
@@ -391,7 +438,9 @@ void JsonSettingsWidget::loadLayoutEntries(JsonSettingsWidget::SetupStack setupT
         if(name.isEmpty())
             continue;//invalid
 
+#ifdef DEBUG_BUILD
         qDebug() << "property" << setupTree.getPropertyId(name);
+#endif
 
         if(!control.compare("spinBox", Qt::CaseInsensitive))
         {
@@ -604,10 +653,19 @@ void JsonSettingsWidget::loadLayoutEntries(JsonSettingsWidget::SetupStack setupT
             QJsonArray children = o["children"].toArray();
             if(!children.isEmpty())
             {
+                bool noBranch = (name == "..");
+                if(noBranch && title == name)
+                    title.clear();
+
                 QtProperty *subGroup = manager->addProperty(QtVariantPropertyManager::groupTypeId(), title);
-                setupTree.m_setupTree.push(name);
+
+                if(!noBranch)
+                    setupTree.m_setupTree.push(name);
+
                 loadLayoutEntries(setupTree, children, manager, subGroup, err, parent);
-                setupTree.m_setupTree.pop();
+
+                if(!noBranch)
+                    setupTree.m_setupTree.pop();
                 target->addSubProperty(subGroup);
             }
         }
@@ -622,9 +680,8 @@ QtAbstractPropertyBrowser *JsonSettingsWidget::loadLayoutDetail(JsonSettingsWidg
     QString style;
     QString title;
 
-    QJsonParseError errCode;
+    QJsonParseError errCode = QJsonParseError();
     QJsonDocument layout = QJsonDocument::fromJson(layoutJson, &errCode);
-
 
     if(errCode.error != QJsonParseError::NoError)
     {
@@ -637,16 +694,26 @@ QtAbstractPropertyBrowser *JsonSettingsWidget::loadLayoutDetail(JsonSettingsWidg
     style = layoutData["style"].toString();
     title = layoutData["title"].toString();
     if(style == "groupbox")
+    {
         gui = new QtGroupBoxPropertyBrowser(qobject_cast<QWidget*>(parent()));
+        m_spacerNeeded = true;
+    }
     else if(style == "frame")
+    {
         gui = new QtGroupBoxPropertyBrowser(qobject_cast<QWidget*>(parent()), true);
+        m_spacerNeeded = true;
+    }
     else if(style == "button")
+    {
         gui = new QtButtonPropertyBrowser(qobject_cast<QWidget*>(parent()));
+        m_spacerNeeded = true;
+    }
     else // "tree" is default
     {
         QtTreePropertyBrowser *gui_t = new QtTreePropertyBrowser(qobject_cast<QWidget*>(parent()));
         gui_t->setPropertiesWithoutValueMarked(true);
         gui = gui_t;
+        m_spacerNeeded = false;
     }
 
     QtVariantPropertyManager *variantManager = new QtVariantPropertyManager(gui);
@@ -656,11 +723,13 @@ QtAbstractPropertyBrowser *JsonSettingsWidget::loadLayoutDetail(JsonSettingsWidg
     QJsonArray layoutEntries = layoutData["layout"].toArray();
     loadLayoutEntries(stack, layoutEntries, variantManager, topItem, err, qobject_cast<QWidget*>(parent()));
 
-    variantManager->connect(variantManager, &QtVariantPropertyManager::valueChanged,
+    QtVariantPropertyManager::connect(variantManager, &QtVariantPropertyManager::valueChanged,
                             [this](QtProperty *p,QVariant v)
     {
         QString pid = p->propertyId();
+#ifdef DEBUG_BUILD
         qDebug() << "changed:" << pid << v;
+#endif
         if(!pid.isEmpty())
         {
             m_setupStack.setValue(p->propertyId(), v);

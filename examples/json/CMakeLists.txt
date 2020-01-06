@@ -14,3 +14,4 @@ SET(KIT_SRCS
 
 ADD_EXECUTABLE(${example_name} ${KIT_SRCS})
 TARGET_LINK_LIBRARIES(${example_name} ${PROJECT_NAME})
+target_compile_definitions(${example_name} PRIVATE -DDEBUG_BUILD)
