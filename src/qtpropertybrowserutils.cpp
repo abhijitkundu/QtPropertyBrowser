@@ -129,22 +129,44 @@ QCursor QtCursorDatabase::valueToCursor(int value) const
 }
 #endif
 
-QPixmap QtPropertyBrowserUtils::brushValuePixmap(const QBrush &b)
+QPixmap QtPropertyBrowserUtils::brushValuePixmap(const QBrush &b, QSize fieldSizeHint)
 {
-    QImage img(16, 16, QImage::Format_ARGB32_Premultiplied);
+    int w = 16, h = 16;
+    if(fieldSizeHint.isValid())
+    {
+        w = fieldSizeHint.height();
+        h = w;
+    }
+
+    QImage img(w, h, QImage::Format_ARGB32_Premultiplied);
     img.fill(0);
 
+    QBrush lg = QBrush(Qt::lightGray);
+    QBrush dg = QBrush(Qt::darkGray);
+    QBrush bl = QBrush(Qt::black);
+    QPen noPen = QPen(Qt::NoPen);
+
     QPainter painter(&img);
-    painter.setCompositionMode(QPainter::CompositionMode_Source);
-    painter.fillRect(0, 0, img.width(), img.height(), b);
-    QColor color = b.color();
-    if (color.alpha() != 255) { // indicate alpha by an inset
-        QBrush  opaqueBrush = b;
-        color.setAlpha(255);
-        opaqueBrush.setColor(color);
-        painter.fillRect(img.width() / 4, img.height() / 4,
-                         img.width() / 2, img.height() / 2, opaqueBrush);
+    painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+    painter.setPen(noPen);
+    painter.setBrush(dg);
+
+    painter.fillRect(0, 0, img.width(), img.height(), lg);
+    for(int i = 0; i < h / 4; i++)
+    {
+        for(int j = 0; j < w / 4; j++)
+        {
+            painter.drawRect(i * 8, j * 8, 4, 4);
+            painter.drawRect(i * 8 + 4, j * 8 + 4, 4, 4);
+        }
     }
+
+    painter.fillRect(0, 0, img.width(), img.height(), b);
+
+    painter.setPen(QPen(Qt::black));
+    painter.setBrush(QBrush(Qt::NoBrush));
+    painter.drawRect(0, 0, img.width() - 1, img.height() - 1);
+
     painter.end();
     return QPixmap::fromImage(img);
 }
@@ -156,11 +178,20 @@ QIcon QtPropertyBrowserUtils::brushValueIcon(const QBrush &b)
 
 QString QtPropertyBrowserUtils::colorValueText(const QColor &c)
 {
-    return QApplication::translate("QtPropertyBrowserUtils", "[%1, %2, %3] (%4)", 0)
+    return QApplication::translate("QtPropertyBrowserUtils", "[%1, %2, %3] (%4)", nullptr)
                                   .arg(QString::number(c.red()))
                                   .arg(QString::number(c.green()))
                                   .arg(QString::number(c.blue()))
                                   .arg(QString::number(c.alpha()));
+}
+
+QString QtPropertyBrowserUtils::colorHexValueText(const QColor &c)
+{
+    return QString("#%1%2%3%4")
+                .arg(c.red(), 2, 16, QChar('0'))
+                .arg(c.green(), 2, 16, QChar('0'))
+                .arg(c.blue(), 2, 16, QChar('0'))
+                .arg(c.alpha(), 2, 16, QChar('0'));
 }
 
 QPixmap QtPropertyBrowserUtils::fontValuePixmap(const QFont &font)
@@ -186,7 +217,7 @@ QIcon QtPropertyBrowserUtils::fontValueIcon(const QFont &f)
 
 QString QtPropertyBrowserUtils::fontValueText(const QFont &f)
 {
-    return QApplication::translate("QtPropertyBrowserUtils", "[%1, %2]", 0)
+    return QApplication::translate("QtPropertyBrowserUtils", "[%1, %2]", nullptr)
                                   .arg(f.family())
                                   .arg(f.pointSize());
 }
@@ -202,6 +233,7 @@ QtBoolEdit::QtBoolEdit(QWidget *parent) :
         lt->setContentsMargins(4, 0, 0, 0);
     else
         lt->setContentsMargins(0, 0, 4, 0);
+    lt->setMargin(0);
     lt->addWidget(m_checkBox);
     setLayout(lt);
     connect(m_checkBox, SIGNAL(toggled(bool)), this, SIGNAL(toggled(bool)));
@@ -215,11 +247,28 @@ void QtBoolEdit::setTextVisible(bool textVisible)
         return;
 
     m_textVisible = textVisible;
+    updateText();
+}
+
+void QtBoolEdit::setLabel(QString label)
+{
+    m_checkBoxLabel = label;
+    updateText();
+}
+
+void QtBoolEdit::updateText()
+{
     if (m_textVisible)
-        m_checkBox->setText(isChecked() ? tr("True") : tr("False"));
+    {
+        if(m_checkBoxLabel.isEmpty())
+            m_checkBox->setText(isChecked() ? tr("True") : tr("False"));
+        else
+            m_checkBox->setText(m_checkBoxLabel);
+    }
     else
         m_checkBox->setText(QString());
 }
+
 
 Qt::CheckState QtBoolEdit::checkState() const
 {
@@ -239,7 +288,7 @@ bool QtBoolEdit::isChecked() const
 void QtBoolEdit::setChecked(bool c)
 {
     m_checkBox->setChecked(c);
-    if (!m_textVisible)
+    if (!m_textVisible || !m_checkBoxLabel.isEmpty())
         return;
     m_checkBox->setText(isChecked() ? tr("True") : tr("False"));
 }
@@ -298,7 +347,7 @@ bool QtKeySequenceEdit::eventFilter(QObject *o, QEvent *e)
                 actionString.remove(pos, actionString.length() - pos);
             action->setText(actionString);
         }
-        QAction *actionBefore = 0;
+        QAction *actionBefore = nullptr;
         if (actions.count() > 0)
             actionBefore = actions[0];
         QAction *clearAction = new QAction(tr("Clear Shortcut"), menu);

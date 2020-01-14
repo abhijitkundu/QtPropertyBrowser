@@ -89,9 +89,10 @@ private:
 class QtPropertyBrowserUtils
 {
 public:
-    static QPixmap brushValuePixmap(const QBrush &b);
+    static QPixmap brushValuePixmap(const QBrush &b, QSize fieldSizeHint = QSize());
     static QIcon brushValueIcon(const QBrush &b);
     static QString colorValueText(const QColor &c);
+    static QString colorHexValueText(const QColor &c);
     static QPixmap fontValuePixmap(const QFont &f);
     static QIcon fontValueIcon(const QFont &f);
     static QString fontValueText(const QFont &f);
@@ -100,10 +101,13 @@ public:
 class QtBoolEdit : public QWidget {
     Q_OBJECT
 public:
-    QtBoolEdit(QWidget *parent = 0);
+    QtBoolEdit(QWidget *parent = nullptr);
 
     bool textVisible() const { return m_textVisible; }
     void setTextVisible(bool textVisible);
+
+    QString label() const { return m_checkBoxLabel; }
+    void setLabel(QString label);
 
     Qt::CheckState checkState() const;
     void setCheckState(Qt::CheckState state);
@@ -121,7 +125,10 @@ protected:
     void paintEvent(QPaintEvent *);
 
 private:
+    void updateText();
+
     QCheckBox *m_checkBox;
+    QString m_checkBoxLabel;
     bool m_textVisible;
 };
 
@@ -129,7 +136,7 @@ class QtKeySequenceEdit : public QWidget
 {
     Q_OBJECT
 public:
-    QtKeySequenceEdit(QWidget *parent = 0);
+    QtKeySequenceEdit(QWidget *parent = nullptr);
 
     QKeySequence keySequence() const;
     bool eventFilter(QObject *o, QEvent *e);

@@ -151,7 +151,7 @@ MainWindow::MainWindow(QWidget *parent)
     propertyEditor = new QtTreePropertyBrowser(dock);
     propertyEditor->setFactoryForManager(doubleManager, doubleSpinBoxFactory);
     propertyEditor->setFactoryForManager(stringManager, lineEditFactory);
-    propertyEditor->setFactoryForManager(colorManager->subIntPropertyManager(), spinBoxFactory);
+    propertyEditor->setFactoryForManager(colorManager->subStringPropertyManager(), lineEditFactory);
     propertyEditor->setFactoryForManager(fontManager->subIntPropertyManager(), spinBoxFactory);
     propertyEditor->setFactoryForManager(fontManager->subBoolPropertyManager(), checkBoxFactory);
     propertyEditor->setFactoryForManager(fontManager->subEnumPropertyManager(), comboBoxFactory);
@@ -159,7 +159,7 @@ MainWindow::MainWindow(QWidget *parent)
     propertyEditor->setFactoryForManager(sizeManager->subIntPropertyManager(), spinBoxFactory);
     dock->setWidget(propertyEditor);
 
-    currentItem = 0;
+    currentItem = nullptr;
 
     connect(canvasView, SIGNAL(itemClicked(QtCanvasItem *)),
             this, SLOT(itemClicked(QtCanvasItem *)));
@@ -167,7 +167,7 @@ MainWindow::MainWindow(QWidget *parent)
             this, SLOT(itemMoved(QtCanvasItem *)));
 
     fillView();
-    itemClicked(0);
+    itemClicked(nullptr);
 }
 
 void MainWindow::newRectangle()

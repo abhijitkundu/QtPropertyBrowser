@@ -6,17 +6,28 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set(_SRCS
-  qtbuttonpropertybrowser.cpp
-  qteditorfactory.cpp
-  qtgroupboxpropertybrowser.cpp
-  qtpropertybrowser.cpp
-  qtpropertybrowserutils.cpp
-  qtpropertymanager.cpp
-  qttreepropertybrowser.cpp
-  qtvariantproperty.cpp
-  )
+    qtbuttonpropertybrowser.cpp
+    qteditorfactory.cpp
+    qtgroupboxpropertybrowser.cpp
+    qtpropertybrowser.cpp
+    qtpropertybrowserutils.cpp
+    qtpropertymanager.cpp
+    qttreepropertybrowser.cpp
+    qtvariantproperty.cpp
+    managers/color_property.cpp
+    managers/group_property.cpp
+    managers/string_property.cpp
+    managers/date_property.cpp
+    managers/time_property.cpp
+    managers/datetime_property.cpp
+    managers/int_property.cpp
+    managers/double_property.cpp
+    managers/bool_property.cpp
+    managers/common.cpp
+)
 
-file(GLOB _IMPL_HDRS *.h)
+file(GLOB _IMPL_HDRS *.h *.hpp)
+file(GLOB _IMPL_HDRS_MGRS managers/*.h)
 file(GLOB _PUBLIC_HDRS Qt*)
 
 set(_UI_FORMS
@@ -25,7 +36,7 @@ set(_UI_FORMS
 set(_RESOURCES
   qtpropertybrowser.qrc
   )
-  
+
 QT5_WRAP_UI(_UI_SRCS ${_UI_FORMS})
 QT5_ADD_RESOURCES(_QRC_SRCS ${_RESOURCES})
 
@@ -58,6 +69,15 @@ install(
     ${_IMPL_HDRS}
   DESTINATION
     ${INSTALL_INCLUDE_DIR}
+  COMPONENT
+    Devel
+)
+
+install(
+  FILES
+    ${_IMPL_HDRS_MGRS}
+  DESTINATION
+    ${INSTALL_INCLUDE_DIR}/managers
   COMPONENT
     Devel
 )

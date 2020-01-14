@@ -37,52 +37,41 @@
 **
 ****************************************************************************/
 
+#include "json_settings_widget.h"
 
-#ifndef QTBUTTONPROPERTYBROWSER_H
-#define QTBUTTONPROPERTYBROWSER_H
+#include <QApplication>
+#include <QFile>
 
-#include "qtpropertybrowser.h"
+#include <QMessageBox>
+#include <QtDebug>
 
-#if QT_VERSION >= 0x040400
-QT_BEGIN_NAMESPACE
-#endif
+const char *sample_layout = "sample.json";
+const char *sample_settings = "setup.json";
 
-class QtButtonPropertyBrowserPrivate;
-
-class QT_QTPROPERTYBROWSER_EXPORT QtButtonPropertyBrowser : public QtAbstractPropertyBrowser
+int main(int argc, char **argv)
 {
-    Q_OBJECT
-public:
+    QApplication app(argc, argv);
 
-    QtButtonPropertyBrowser(QWidget *parent = nullptr);
-    ~QtButtonPropertyBrowser();
+    JsonSettingsWidget extraSettings;
 
-    void setExpanded(QtBrowserItem *item, bool expanded);
-    bool isExpanded(QtBrowserItem *item) const;
+    if(!extraSettings.loadLayoutFromFile(sample_settings, sample_layout))
+    {
+        QMessageBox::warning(nullptr, "oops", extraSettings.errorString());
+        return 1;
+    }
 
-Q_SIGNALS:
+    extraSettings.connect(&extraSettings, &JsonSettingsWidget::settingsChanged,
+                            []()
+    {
+        qDebug() << "Setup Changed!";
+    });
 
-    void collapsed(QtBrowserItem *item);
-    void expanded(QtBrowserItem *item);
+    QWidget *w = extraSettings.getWidget();
+    w->show();
 
-protected:
-    virtual void itemInserted(QtBrowserItem *item, QtBrowserItem *afterItem);
-    virtual void itemRemoved(QtBrowserItem *item);
-    virtual void itemChanged(QtBrowserItem *item);
+    int ret = app.exec();
 
-private:
+    extraSettings.saveSettingsIntoFile(sample_settings);
 
-    QtButtonPropertyBrowserPrivate *d_ptr;
-    Q_DECLARE_PRIVATE(QtButtonPropertyBrowser)
-    Q_DISABLE_COPY(QtButtonPropertyBrowser)
-    Q_PRIVATE_SLOT(d_func(), void slotUpdate())
-    Q_PRIVATE_SLOT(d_func(), void slotEditorDestroyed())
-    Q_PRIVATE_SLOT(d_func(), void slotToggled(bool))
-
-};
-
-#if QT_VERSION >= 0x040400
-QT_END_NAMESPACE
-#endif
-
-#endif
+    return ret;
+}
